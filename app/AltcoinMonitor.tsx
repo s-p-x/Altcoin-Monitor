@@ -4,8 +4,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { TrendingUp, RefreshCw, Download, Bell, Filter, AlertCircle, CheckCircle, Key, Clock } from 'lucide-react';
 
 const AltcoinMonitor = () => {
-  const [coins, setCoins] = useState([]);
-  const [filteredCoins, setFilteredCoins] = useState([]);
+  const [coins, setCoins] = useState<any[]>([]);
+  const [filteredCoins, setFilteredCoins] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [apiKey, setApiKey] = useState('');
@@ -17,14 +17,14 @@ const AltcoinMonitor = () => {
     minVolumeChange: 10,
     volumeSpikeThreshold: 100
   });
-  const [volumeSpikes, setVolumeSpikes] = useState([]);
+  const [volumeSpikes, setVolumeSpikes] = useState<any[]>([]);
   const [autoRefresh, setAutoRefresh] = useState(false);
-  const [lastUpdate, setLastUpdate] = useState(null);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [sortConfig, setSortConfig] = useState({ key: 'total_volume', direction: 'desc' });
   const [apiStatus, setApiStatus] = useState('idle');
-  const [cacheExpiry, setCacheExpiry] = useState(null);
+  const [cacheExpiry, setCacheExpiry] = useState<number | null>(null);
   const [retryCount, setRetryCount] = useState(0);
-  const [debugInfo, setDebugInfo] = useState(null);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
 
   const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
   const MAX_RETRIES = 3;
@@ -62,7 +62,7 @@ const AltcoinMonitor = () => {
   };
 
   // Exponential backoff delay
-  const getBackoffDelay = (attempt) => {
+  const getBackoffDelay = (attempt: number) => {
     return BASE_BACKOFF * Math.pow(2, attempt);
   };
 
@@ -70,11 +70,11 @@ const AltcoinMonitor = () => {
   const fetchCoins = useCallback(async (forceRefresh = false) => {
     // Check cache first
     if (!forceRefresh && isCacheValid()) {
-      console.log('📦 Using cached data (expires in', Math.round((cacheExpiry - Date.now()) / 1000), 'seconds)');
+      console.log('📦 Using cached data (expires in', Math.round(((cacheExpiry || 0) - Date.now()) / 1000), 'seconds)');
       setDebugInfo({
         message: 'Using cached data',
         timestamp: new Date().toISOString(),
-        cacheExpiry: new Date(cacheExpiry).toISOString()
+        cacheExpiry: new Date(cacheExpiry || 0).toISOString()
       });
       return;
     }
@@ -88,7 +88,7 @@ const AltcoinMonitor = () => {
     while (attempt < MAX_RETRIES) {
       try {
         // Store previous volumes for spike detection
-        const previousCoins = coins.reduce((acc, coin) => {
+        const previousCoins = coins.reduce((acc: any, coin: any) => {
           acc[coin.id] = coin.total_volume;
           return acc;
         }, {});
@@ -157,8 +157,8 @@ const AltcoinMonitor = () => {
         }
 
         // Process and normalize data from CoinGecko
-        const newSpikes = [];
-        const processedData = result.map(coin => {
+        const newSpikes: any[] = [];
+        const processedData = result.map((coin: any) => {
           const volume = coin.total_volume || 0;
           const marketCap = coin.market_cap || 0;
           const volumeToMcapRatio = marketCap > 0 ? (volume / marketCap) * 100 : 0;
@@ -221,7 +221,7 @@ const AltcoinMonitor = () => {
         
         if (attempt === MAX_RETRIES - 1) {
           // Last attempt failed
-          setError(err.message || 'Failed to fetch data after multiple attempts');
+          setError((err as any).message || 'Failed to fetch data after multiple attempts');
           setApiStatus('error');
           setRetryCount(attempt + 1);
         } else {
@@ -261,7 +261,7 @@ const AltcoinMonitor = () => {
 
   // Auto-refresh with cache awareness
   useEffect(() => {
-    let interval;
+    let interval: any;
     if (autoRefresh) {
       interval = setInterval(() => {
         if (!isCacheValid()) {
@@ -279,7 +279,7 @@ const AltcoinMonitor = () => {
     return sortConfig.direction === 'asc' ? (aVal > bVal ? 1 : -1) : (aVal < bVal ? 1 : -1);
   });
 
-  const handleSort = (key) => {
+  const handleSort = (key: string) => {
     setSortConfig(prev => ({
       key,
       direction: prev.key === key && prev.direction === 'desc' ? 'asc' : 'desc'
@@ -313,14 +313,14 @@ const AltcoinMonitor = () => {
     a.click();
   };
 
-  const formatNumber = (num) => {
+  const formatNumber = (num: number) => {
     if (num >= 1e9) return `$${(num / 1e9).toFixed(2)}B`;
     if (num >= 1e6) return `$${(num / 1e6).toFixed(2)}M`;
     if (num >= 1e3) return `$${(num / 1e3).toFixed(2)}K`;
     return `$${num?.toFixed(2) || 0}`;
   };
 
-  const SortIcon = ({ columnKey }) => {
+  const SortIcon = ({ columnKey }: { columnKey: string }) => {
     if (sortConfig.key !== columnKey) return <span className="text-gray-300">⇅</span>;
     return sortConfig.direction === 'desc' ? <span>↓</span> : <span>↑</span>;
   };
