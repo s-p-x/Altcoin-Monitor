@@ -2,10 +2,13 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { TrendingUp, RefreshCw, Download, Bell, Filter, AlertCircle, CheckCircle, Key, Clock } from 'lucide-react';
+import ViewToggle, { type ViewMode } from './components/ViewToggle';
+import CardView from './components/CardView';
+import DenseView from './components/DenseView';
 
 const AltcoinMonitor = () => {
-  const [coins, setCoins] = useState([]);
-  const [filteredCoins, setFilteredCoins] = useState([]);
+  const [coins, setCoins] = useState<any[]>([]);
+  const [filteredCoins, setFilteredCoins] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [apiKey, setApiKey] = useState('');
@@ -17,25 +20,34 @@ const AltcoinMonitor = () => {
     minVolumeChange: 10,
     volumeSpikeThreshold: 100
   });
-  const [volumeSpikes, setVolumeSpikes] = useState([]);
+  const [volumeSpikes, setVolumeSpikes] = useState<any[]>([]);
   const [autoRefresh, setAutoRefresh] = useState(false);
-  const [lastUpdate, setLastUpdate] = useState(null);
-  const [sortConfig, setSortConfig] = useState({ key: 'total_volume', direction: 'desc' });
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({ 
+    key: 'total_volume', 
+    direction: 'desc' 
+  });
   const [apiStatus, setApiStatus] = useState('idle');
-  const [cacheExpiry, setCacheExpiry] = useState(null);
+  const [cacheExpiry, setCacheExpiry] = useState<number | null>(null);
   const [retryCount, setRetryCount] = useState(0);
-  const [debugInfo, setDebugInfo] = useState(null);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('table');
 
   const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
   const MAX_RETRIES = 3;
   const BASE_BACKOFF = 1000; // 1 second
 
-  // Load API key from localStorage on mount
+  // Load API key and view mode from localStorage on mount
   useEffect(() => {
     const stored = localStorage.getItem('coingeckoApiKey');
     if (stored) {
       setApiKey(stored);
       setApiKeySet(true);
+    }
+    
+    const savedViewMode = localStorage.getItem('viewMode') as ViewMode | null;
+    if (savedViewMode && ['table', 'cards', 'dense'].includes(savedViewMode)) {
+      setViewMode(savedViewMode);
     }
   }, []);
 
@@ -62,7 +74,7 @@ const AltcoinMonitor = () => {
   };
 
   // Exponential backoff delay
-  const getBackoffDelay = (attempt) => {
+  const getBackoffDelay = (attempt: number) => {
     return BASE_BACKOFF * Math.pow(2, attempt);
   };
 
@@ -70,11 +82,11 @@ const AltcoinMonitor = () => {
   const fetchCoins = useCallback(async (forceRefresh = false) => {
     // Check cache first
     if (!forceRefresh && isCacheValid()) {
-      console.log('📦 Using cached data (expires in', Math.round((cacheExpiry - Date.now()) / 1000), 'seconds)');
+      console.log('📦 Using cached data (expires in', Math.round(((cacheExpiry || 0) - Date.now()) / 1000), 'seconds)');
       setDebugInfo({
         message: 'Using cached data',
         timestamp: new Date().toISOString(),
-        cacheExpiry: new Date(cacheExpiry).toISOString()
+        cacheExpiry: new Date(cacheExpiry || 0).toISOString()
       });
       return;
     }
@@ -88,7 +100,7 @@ const AltcoinMonitor = () => {
     while (attempt < MAX_RETRIES) {
       try {
         // Store previous volumes for spike detection
-        const previousCoins = coins.reduce((acc, coin) => {
+        const previousCoins = coins.reduce((acc: any, coin: any) => {
           acc[coin.id] = coin.total_volume;
           return acc;
         }, {});
@@ -157,8 +169,8 @@ const AltcoinMonitor = () => {
         }
 
         // Process and normalize data from CoinGecko
-        const newSpikes = [];
-        const processedData = result.map(coin => {
+        const newSpikes: any[] = [];
+        const processedData = result.map((coin: any) => {
           const volume = coin.total_volume || 0;
           const marketCap = coin.market_cap || 0;
           const volumeToMcapRatio = marketCap > 0 ? (volume / marketCap) * 100 : 0;
@@ -221,7 +233,7 @@ const AltcoinMonitor = () => {
         
         if (attempt === MAX_RETRIES - 1) {
           // Last attempt failed
-          setError(err.message || 'Failed to fetch data after multiple attempts');
+          setError((err as any).message || 'Failed to fetch data after multiple attempts');
           setApiStatus('error');
           setRetryCount(attempt + 1);
         } else {
@@ -261,7 +273,7 @@ const AltcoinMonitor = () => {
 
   // Auto-refresh with cache awareness
   useEffect(() => {
-    let interval;
+    let interval: NodeJS.Timeout | undefined;
     if (autoRefresh) {
       interval = setInterval(() => {
         if (!isCacheValid()) {
@@ -269,21 +281,28 @@ const AltcoinMonitor = () => {
         }
       }, 60000); // Check every minute
     }
-    return () => clearInterval(interval);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [autoRefresh, fetchCoins, cacheExpiry]);
 
   // Sort coins
   const sortedCoins = [...filteredCoins].sort((a, b) => {
     const aVal = a[sortConfig.key] || 0;
     const bVal = b[sortConfig.key] || 0;
-    return sortConfig.direction === 'asc' ? (aVal > bVal ? 1 : -1) : (aVal < bVal ? 1 : -1);
+    return sortConfig.direction === 'desc' ? (aVal < bVal ? 1 : -1) : (aVal > bVal ? 1 : -1);
   });
 
-  const handleSort = (key) => {
+  const handleSort = (key: string) => {
     setSortConfig(prev => ({
       key,
       direction: prev.key === key && prev.direction === 'desc' ? 'asc' : 'desc'
     }));
+  };
+
+  const handleViewModeChange = (newMode: ViewMode) => {
+    setViewMode(newMode);
+    localStorage.setItem('viewMode', newMode);
   };
 
   // Export to CSV
@@ -313,14 +332,14 @@ const AltcoinMonitor = () => {
     a.click();
   };
 
-  const formatNumber = (num) => {
+  const formatNumber = (num: number): string => {
     if (num >= 1e9) return `$${(num / 1e9).toFixed(2)}B`;
     if (num >= 1e6) return `$${(num / 1e6).toFixed(2)}M`;
     if (num >= 1e3) return `$${(num / 1e3).toFixed(2)}K`;
     return `$${num?.toFixed(2) || 0}`;
   };
 
-  const SortIcon = ({ columnKey }) => {
+  const SortIcon = ({ columnKey }: { columnKey: string }) => {
     if (sortConfig.key !== columnKey) return <span className="text-gray-300">⇅</span>;
     return sortConfig.direction === 'desc' ? <span>↓</span> : <span>↑</span>;
   };
@@ -399,7 +418,8 @@ const AltcoinMonitor = () => {
                 )}
               </div>
             </div>
-            <div className="flex gap-3 flex-wrap">
+            <div className="flex gap-3 flex-wrap items-start">
+              <ViewToggle viewMode={viewMode} onChange={handleViewModeChange} />
               {apiKeySet && (
                 <button
                   onClick={clearApiKey}
@@ -572,129 +592,189 @@ const AltcoinMonitor = () => {
           </div>
         )}
 
-        {/* Coins Table */}
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Rank
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Coin
-                  </th>
-                  <th 
-                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort('price')}
-                  >
-                    <div className="flex items-center justify-end gap-1">
-                      Price <SortIcon columnKey="price" />
-                    </div>
-                  </th>
-                  <th 
-                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort('market_cap')}
-                  >
-                    <div className="flex items-center justify-end gap-1">
-                      Market Cap <SortIcon columnKey="market_cap" />
-                    </div>
-                  </th>
-                  <th 
-                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort('total_volume')}
-                  >
-                    <div className="flex items-center justify-end gap-1">
-                      24h Volume <SortIcon columnKey="total_volume" />
-                    </div>
-                  </th>
-                  <th 
-                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort('volume_to_mcap_ratio')}
-                  >
-                    <div className="flex items-center justify-end gap-1">
-                      Vol/MCap % <SortIcon columnKey="volume_to_mcap_ratio" />
-                    </div>
-                  </th>
-                  <th 
-                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort('price_change_24h')}
-                  >
-                    <div className="flex items-center justify-end gap-1">
-                      24h Change <SortIcon columnKey="price_change_24h" />
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {sortedCoins.map((coin) => (
-                  <tr key={coin.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      #{coin.rank}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        {coin.image && <img src={coin.image} alt={coin.name} className="w-8 h-8 mr-3 rounded-full" />}
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{coin.name}</div>
-                          <div className="text-sm text-gray-500">{coin.symbol.toUpperCase()}</div>
-                        </div>
+        {/* Coins Display - Dynamic View */}
+        {viewMode === 'table' && (
+          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Rank
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Coin
+                    </th>
+                    <th 
+                      className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleSort('price')}
+                    >
+                      <div className="flex items-center justify-end gap-1">
+                        Price <SortIcon columnKey="price" />
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
-                      ${coin.price?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
-                      {formatNumber(coin.market_cap)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">
-                      {formatNumber(coin.total_volume)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
-                      <span className={`px-2 py-1 rounded-full font-semibold ${
-                        coin.volume_to_mcap_ratio >= 100 ? 'bg-orange-100 text-orange-800' :
-                        coin.volume_to_mcap_ratio >= 50 ? 'bg-green-100 text-green-800' :
-                        coin.volume_to_mcap_ratio >= 20 ? 'bg-blue-100 text-blue-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {coin.volume_to_mcap_ratio?.toFixed(1) || 0}%
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
-                      <span className={`font-semibold ${
-                        coin.price_change_24h > 0 ? 'text-green-600' : 'text-red-600'
-                      }`}>
-                        {coin.price_change_24h > 0 ? '+' : ''}
-                        {coin.price_change_24h?.toFixed(2) || 0}%
-                      </span>
-                    </td>
+                    </th>
+                    <th 
+                      className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleSort('market_cap')}
+                    >
+                      <div className="flex items-center justify-end gap-1">
+                        Market Cap <SortIcon columnKey="market_cap" />
+                      </div>
+                    </th>
+                    <th 
+                      className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleSort('total_volume')}
+                    >
+                      <div className="flex items-center justify-end gap-1">
+                        24h Volume <SortIcon columnKey="total_volume" />
+                      </div>
+                    </th>
+                    <th 
+                      className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleSort('volume_to_mcap_ratio')}
+                    >
+                      <div className="flex items-center justify-end gap-1">
+                        Vol/MCap % <SortIcon columnKey="volume_to_mcap_ratio" />
+                      </div>
+                    </th>
+                    <th 
+                      className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleSort('price_change_24h')}
+                    >
+                      <div className="flex items-center justify-end gap-1">
+                        24h Change <SortIcon columnKey="price_change_24h" />
+                      </div>
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {sortedCoins.map((coin) => (
+                    <tr key={coin.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        #{coin.rank}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          {coin.image && <img src={coin.image} alt={coin.name} className="w-8 h-8 mr-3 rounded-full" />}
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">{coin.name}</div>
+                            <div className="text-sm text-gray-500">{coin.symbol.toUpperCase()}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
+                        ${coin.price?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
+                        {formatNumber(coin.market_cap)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">
+                        {formatNumber(coin.total_volume)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
+                        <span className={`px-2 py-1 rounded-full font-semibold ${
+                          coin.volume_to_mcap_ratio >= 100 ? 'bg-orange-100 text-orange-800' :
+                          coin.volume_to_mcap_ratio >= 50 ? 'bg-green-100 text-green-800' :
+                          coin.volume_to_mcap_ratio >= 20 ? 'bg-blue-100 text-blue-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {coin.volume_to_mcap_ratio?.toFixed(1) || 0}%
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
+                        <span className={`font-semibold ${
+                          coin.price_change_24h > 0 ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {coin.price_change_24h > 0 ? '+' : ''}
+                          {coin.price_change_24h?.toFixed(2) || 0}%
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            
+            {sortedCoins.length === 0 && !loading && coins.length > 0 && (
+              <div className="text-center py-12 text-gray-500">
+                <Filter className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                <p className="font-semibold">No coins match the current filters</p>
+                <p className="text-sm mt-1">Try lowering the Min Vol/MCap % to 10-20%</p>
+                <p className="text-xs mt-2 text-gray-400">
+                  Currently filtering from {coins.length} coins
+                </p>
+              </div>
+            )}
+            
+            {coins.length === 0 && !loading && (
+              <div className="text-center py-12 text-gray-500">
+                <AlertCircle className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                <p className="font-semibold">No data loaded</p>
+                <p className="text-sm mt-1">
+                  Click the Refresh button to fetch coins
+                </p>
+              </div>
+            )}
           </div>
-          
-          {sortedCoins.length === 0 && !loading && coins.length > 0 && (
-            <div className="text-center py-12 text-gray-500">
-              <Filter className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-              <p className="font-semibold">No coins match the current filters</p>
-              <p className="text-sm mt-1">Try lowering the Min Vol/MCap % to 10-20%</p>
-              <p className="text-xs mt-2 text-gray-400">
-                Currently filtering from {coins.length} coins
-              </p>
-            </div>
-          )}
-          
-          {coins.length === 0 && !loading && (
-            <div className="text-center py-12 text-gray-500">
-              <AlertCircle className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-              <p className="font-semibold">No data loaded</p>
-              <p className="text-sm mt-1">
-                Click the Refresh button to fetch coins
-              </p>
-            </div>
-          )}
-        </div>
+        )}
+
+        {viewMode === 'cards' && (
+          <div>
+            {sortedCoins.length > 0 ? (
+              <CardView coins={sortedCoins} formatNumber={formatNumber} />
+            ) : (
+              <div className="bg-white rounded-lg shadow-lg p-12 text-center text-gray-500">
+                {coins.length === 0 && !loading ? (
+                  <>
+                    <AlertCircle className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                    <p className="font-semibold">No data loaded</p>
+                    <p className="text-sm mt-1">
+                      Click the Refresh button to fetch coins
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <Filter className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                    <p className="font-semibold">No coins match the current filters</p>
+                    <p className="text-sm mt-1">Try lowering the Min Vol/MCap % to 10-20%</p>
+                    <p className="text-xs mt-2 text-gray-400">
+                      Currently filtering from {coins.length} coins
+                    </p>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {viewMode === 'dense' && (
+          <div>
+            {sortedCoins.length > 0 ? (
+              <DenseView coins={sortedCoins} formatNumber={formatNumber} onSort={handleSort} sortConfig={sortConfig} />
+            ) : (
+              <div className="bg-white rounded-lg shadow-lg p-12 text-center text-gray-500">
+                {coins.length === 0 && !loading ? (
+                  <>
+                    <AlertCircle className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                    <p className="font-semibold">No data loaded</p>
+                    <p className="text-sm mt-1">
+                      Click the Refresh button to fetch coins
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <Filter className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                    <p className="font-semibold">No coins match the current filters</p>
+                    <p className="text-sm mt-1">Try lowering the Min Vol/MCap % to 10-20%</p>
+                    <p className="text-xs mt-2 text-gray-400">
+                      Currently filtering from {coins.length} coins
+                    </p>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Footer Info */}
         <div className="mt-6 text-center text-sm text-gray-600">
