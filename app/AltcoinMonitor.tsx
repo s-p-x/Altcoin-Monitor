@@ -353,18 +353,18 @@ const AltcoinMonitor = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-[var(--bg)] p-6">
       <div className="max-w-7xl mx-auto">
         {/* API Key Setup */}
         {!apiKeySet && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-6">
+          <div className="bg-[var(--panel)] border-l-4 border-[var(--accent)] rounded-lg p-6 mb-6">
             <div className="flex items-start gap-3">
-              <Key className="w-6 h-6 text-yellow-600 mt-1" />
+              <Key className="w-6 h-6 text-[var(--accent)] mt-1" />
               <div className="flex-1">
-                <h3 className="font-semibold text-yellow-900 mb-2">CoinGecko API Key (Optional)</h3>
-                <p className="text-sm text-yellow-800 mb-4">
+                <h3 className="font-semibold text-[var(--text)] mb-2">CoinGecko API Key (Optional)</h3>
+                <p className="text-sm text-[var(--text-muted)] mb-4">
                   This app uses the free CoinGecko API by default. For higher rate limits, enter your API key from{' '}
-                  <a href="https://www.coingecko.com/en/api/pricing" target="_blank" rel="noopener noreferrer" className="underline">
+                  <a href="https://www.coingecko.com/en/api/pricing" target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] underline hover:text-white">
                     coingecko.com/api/pricing
                   </a>
                 </p>
@@ -374,12 +374,12 @@ const AltcoinMonitor = () => {
                     value={apiKey}
                     onChange={(e) => setApiKey(e.target.value)}
                     placeholder="Enter your API key (optional)..."
-                    className="flex-1 px-3 py-2 border border-yellow-300 rounded-lg"
+                    className="flex-1 px-3 py-2 border border-[var(--border)] bg-[var(--bg)] text-[var(--text)] rounded-lg placeholder-[var(--text-faint)] focus:outline-none focus:border-[var(--accent)]"
                     onKeyPress={(e) => e.key === 'Enter' && saveApiKey()}
                   />
                   <button
                     onClick={saveApiKey}
-                    className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700"
+                    className="px-4 py-2 bg-[var(--accent)] text-white rounded-lg hover:bg-opacity-80 border border-[var(--accent)] transition-all"
                   >
                     Save Key
                   </button>
@@ -390,29 +390,29 @@ const AltcoinMonitor = () => {
         )}
 
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div className="bg-[var(--panel)] rounded-lg border border-[var(--border)] p-6 mb-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-                <TrendingUp className="w-8 h-8 text-blue-600" />
+              <h1 className="text-3xl font-bold text-[var(--text)] flex items-center gap-2">
+                <TrendingUp className="w-8 h-8 text-[var(--accent)]" />
                 Altcoin Volume Monitor
               </h1>
               <div className="flex items-center gap-3 mt-2">
-                <p className="text-gray-600">
+                <p className="text-[var(--text-muted)]">
                   {lastUpdate && `Last updated: ${lastUpdate.toLocaleTimeString()}`}
                 </p>
                 {apiStatus === 'success' && (
-                  <span className="flex items-center gap-1 text-green-600 text-sm">
+                  <span className="flex items-center gap-1 text-[var(--semantic-green)] text-sm">
                     <CheckCircle className="w-4 h-4" /> API Connected
                   </span>
                 )}
                 {apiStatus === 'error' && (
-                  <span className="flex items-center gap-1 text-red-600 text-sm">
+                  <span className="flex items-center gap-1 text-[var(--semantic-red)] text-sm">
                     <AlertCircle className="w-4 h-4" /> API Error
                   </span>
                 )}
                 {cacheExpiry && isCacheValid() && (
-                  <span className="flex items-center gap-1 text-blue-600 text-sm">
+                  <span className="flex items-center gap-1 text-[var(--accent)] text-sm">
                     <Clock className="w-4 h-4" /> Cache: {getCacheTimeRemaining()}
                   </span>
                 )}
@@ -423,7 +423,7 @@ const AltcoinMonitor = () => {
               {apiKeySet && (
                 <button
                   onClick={clearApiKey}
-                  className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm"
+                  className="px-3 py-2 bg-[var(--panel)] text-[var(--text-muted)] rounded-lg hover:text-[var(--text)] border border-[var(--border)] hover:border-[var(--accent)] text-sm transition-all"
                 >
                   Change API Key
                 </button>
@@ -431,7 +431,7 @@ const AltcoinMonitor = () => {
               <button
                 onClick={() => fetchCoins(true)}
                 disabled={loading}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 flex items-center gap-2"
+                className="px-4 py-2 bg-[var(--accent)] text-white rounded-lg hover:bg-opacity-80 disabled:bg-[var(--text-faint)] disabled:text-[var(--text-muted)] flex items-center gap-2 border border-[var(--accent)] transition-all"
               >
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                 {loading ? 'Loading...' : 'Refresh'}
@@ -439,15 +439,15 @@ const AltcoinMonitor = () => {
               <button
                 onClick={exportToCSV}
                 disabled={sortedCoins.length === 0}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 flex items-center gap-2"
+                className="px-4 py-2 bg-[var(--panel)] text-[var(--semantic-green)] rounded-lg hover:bg-opacity-80 disabled:text-[var(--text-faint)] flex items-center gap-2 border border-[var(--semantic-green)] disabled:border-[var(--border)] transition-all"
               >
                 <Download className="w-4 h-4" />
                 Export CSV
               </button>
               <button
                 onClick={() => setAutoRefresh(!autoRefresh)}
-                className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
-                  autoRefresh ? 'bg-orange-600 text-white' : 'bg-gray-200 text-gray-700'
+                className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all border ${
+                  autoRefresh ? 'bg-[var(--panel)] text-[var(--semantic-red)] border-[var(--semantic-red)]' : 'bg-[var(--panel)] text-[var(--text-muted)] border-[var(--border)] hover:border-[var(--accent)]'
                 }`}
               >
                 <Bell className="w-4 h-4" />
@@ -457,14 +457,14 @@ const AltcoinMonitor = () => {
           </div>
 
           {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="mb-4 p-4 bg-[var(--panel)] border-l-4 border-[var(--semantic-red)] rounded-lg">
               <div className="flex items-start gap-2">
-                <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-[var(--semantic-red)] mt-0.5" />
                 <div className="flex-1">
-                  <p className="font-semibold text-red-900">Error</p>
-                  <p className="text-sm text-red-700">{error}</p>
+                  <p className="font-semibold text-[var(--semantic-red)]">Error</p>
+                  <p className="text-sm text-[var(--text-muted)]">{error}</p>
                   {retryCount > 0 && (
-                    <p className="text-xs text-red-600 mt-1">Failed after {retryCount} attempts</p>
+                    <p className="text-xs text-[var(--text-faint)] mt-1">Failed after {retryCount} attempts</p>
                   )}
                 </div>
               </div>
@@ -473,83 +473,83 @@ const AltcoinMonitor = () => {
 
           {/* Debug Info */}
           {debugInfo && (
-            <details className="mb-4 p-3 bg-gray-100 rounded-lg text-xs">
-              <summary className="cursor-pointer font-semibold text-gray-700">Debug Info</summary>
-              <pre className="mt-2 overflow-x-auto text-gray-600">
+            <details className="mb-4 p-3 bg-[var(--bg)] rounded-lg text-xs border border-[var(--border)]">
+              <summary className="cursor-pointer font-semibold text-[var(--text-muted)]">Debug Info</summary>
+              <pre className="mt-2 overflow-x-auto text-[var(--text-faint)]">
                 {JSON.stringify(debugInfo, null, 2)}
               </pre>
             </details>
           )}
 
           {/* Filters */}
-          <div className="grid grid-cols-5 gap-4 p-4 bg-gray-50 rounded-lg">
+          <div className="grid grid-cols-5 gap-4 p-4 bg-[var(--bg)] rounded-lg border border-[var(--border)]">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-[var(--text-muted)] mb-1">
                 Min Market Cap
               </label>
               <input
                 type="number"
                 value={filters.minMarketCap}
                 onChange={(e) => setFilters({ ...filters, minMarketCap: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                className="w-full px-3 py-2 border border-[var(--border)] bg-[var(--panel)] text-[var(--text)] rounded-lg text-sm focus:outline-none focus:border-[var(--accent)]"
               />
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-[var(--text-faint)]">
                 {formatNumber(filters.minMarketCap)}
               </span>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-[var(--text-muted)] mb-1">
                 Max Market Cap
               </label>
               <input
                 type="number"
                 value={filters.maxMarketCap}
                 onChange={(e) => setFilters({ ...filters, maxMarketCap: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                className="w-full px-3 py-2 border border-[var(--border)] bg-[var(--panel)] text-[var(--text)] rounded-lg text-sm focus:outline-none focus:border-[var(--accent)]"
               />
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-[var(--text-faint)]">
                 {formatNumber(filters.maxMarketCap)}
               </span>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-[var(--text-muted)] mb-1">
                 Min Volume (24h)
               </label>
               <input
                 type="number"
                 value={filters.minVolume}
                 onChange={(e) => setFilters({ ...filters, minVolume: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                className="w-full px-3 py-2 border border-[var(--border)] bg-[var(--panel)] text-[var(--text)] rounded-lg text-sm focus:outline-none focus:border-[var(--accent)]"
               />
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-[var(--text-faint)]">
                 {formatNumber(filters.minVolume)}
               </span>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-[var(--text-muted)] mb-1">
                 Min Vol/MCap %
               </label>
               <input
                 type="number"
                 value={filters.minVolumeChange}
                 onChange={(e) => setFilters({ ...filters, minVolumeChange: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                className="w-full px-3 py-2 border border-[var(--border)] bg-[var(--panel)] text-[var(--text)] rounded-lg text-sm focus:outline-none focus:border-[var(--accent)]"
               />
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-[var(--text-faint)]">
                 {filters.minVolumeChange}%
               </span>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-[var(--text-muted)] mb-1">
                 Spike Threshold %
               </label>
               <input
                 type="number"
                 value={filters.volumeSpikeThreshold}
                 onChange={(e) => setFilters({ ...filters, volumeSpikeThreshold: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                className="w-full px-3 py-2 border border-[var(--border)] bg-[var(--panel)] text-[var(--text)] rounded-lg text-sm focus:outline-none focus:border-[var(--accent)]"
               />
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-[var(--text-faint)]">
                 {filters.volumeSpikeThreshold}%
               </span>
             </div>
@@ -557,33 +557,33 @@ const AltcoinMonitor = () => {
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-4 mt-4">
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <div className="text-sm text-gray-600">Total Coins Fetched</div>
-              <div className="text-2xl font-bold text-blue-600">{coins.length}</div>
+            <div className="bg-[var(--bg)] p-4 rounded-lg border border-[var(--accent)] border-opacity-30">
+              <div className="text-sm text-[var(--text-muted)]">Total Coins Fetched</div>
+              <div className="text-2xl font-bold text-[var(--accent)]">{coins.length}</div>
             </div>
-            <div className="bg-green-50 p-4 rounded-lg">
-              <div className="text-sm text-gray-600">Coins Matching Filters</div>
-              <div className="text-2xl font-bold text-green-600">{filteredCoins.length}</div>
+            <div className="bg-[var(--bg)] p-4 rounded-lg border border-[var(--semantic-green)] border-opacity-30">
+              <div className="text-sm text-[var(--text-muted)]">Coins Matching Filters</div>
+              <div className="text-2xl font-bold text-[var(--semantic-green)]">{filteredCoins.length}</div>
             </div>
-            <div className="bg-orange-50 p-4 rounded-lg">
-              <div className="text-sm text-gray-600">Volume Spikes Detected</div>
-              <div className="text-2xl font-bold text-orange-600">{volumeSpikes.length}</div>
+            <div className="bg-[var(--bg)] p-4 rounded-lg border border-[var(--semantic-red)] border-opacity-30">
+              <div className="text-sm text-[var(--text-muted)]">Volume Spikes Detected</div>
+              <div className="text-2xl font-bold text-[var(--semantic-red)]">{volumeSpikes.length}</div>
             </div>
           </div>
         </div>
 
         {/* Volume Spikes Alert */}
         {volumeSpikes.length > 0 && (
-          <div className="bg-orange-50 border-l-4 border-orange-500 p-4 mb-6 rounded-lg">
+          <div className="bg-[var(--panel)] border-l-4 border-[var(--semantic-red)] p-4 mb-6 rounded-lg">
             <div className="flex items-start">
-              <AlertCircle className="w-5 h-5 text-orange-500 mt-0.5 mr-3" />
+              <AlertCircle className="w-5 h-5 text-[var(--semantic-red)] mt-0.5 mr-3" />
               <div className="flex-1">
-                <h3 className="font-semibold text-orange-900">Recent Volume Spikes (&gt;{filters.volumeSpikeThreshold}% increase)</h3>
+                <h3 className="font-semibold text-[var(--text)]">Recent Volume Spikes (&gt;{filters.volumeSpikeThreshold}% increase)</h3>
                 <div className="mt-2 space-y-1">
                   {volumeSpikes.slice(0, 5).map((spike, i) => (
-                    <div key={i} className="text-sm text-orange-800">
-                      <span className="font-medium">{spike.name} ({spike.symbol})</span> - 
-                      <span className="text-orange-600 font-bold"> +{spike.volumeIncrease}%</span> volume at {spike.timestamp}
+                    <div key={i} className="text-sm text-[var(--text-muted)]">
+                      <span className="font-medium text-[var(--text)]">{spike.name} ({spike.symbol})</span> - 
+                      <span className="text-[var(--semantic-red)] font-bold"> +{spike.volumeIncrease}%</span> volume at {spike.timestamp}
                     </div>
                   ))}
                 </div>
@@ -594,19 +594,19 @@ const AltcoinMonitor = () => {
 
         {/* Coins Display - Dynamic View */}
         {viewMode === 'table' && (
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div className="bg-[var(--panel)] rounded-lg border border-[var(--border)] overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-[var(--border)]">
+                <thead className="bg-[var(--bg)] border-b border-[var(--border)]">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-faint)] uppercase tracking-wider">
                       Rank
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-faint)] uppercase tracking-wider">
                       Coin
                     </th>
                     <th 
-                      className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      className="px-6 py-3 text-right text-xs font-medium text-[var(--text-faint)] uppercase tracking-wider cursor-pointer hover:text-[var(--accent)]"
                       onClick={() => handleSort('price')}
                     >
                       <div className="flex items-center justify-end gap-1">
@@ -614,7 +614,7 @@ const AltcoinMonitor = () => {
                       </div>
                     </th>
                     <th 
-                      className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      className="px-6 py-3 text-right text-xs font-medium text-[var(--text-faint)] uppercase tracking-wider cursor-pointer hover:text-[var(--accent)]"
                       onClick={() => handleSort('market_cap')}
                     >
                       <div className="flex items-center justify-end gap-1">
@@ -622,7 +622,7 @@ const AltcoinMonitor = () => {
                       </div>
                     </th>
                     <th 
-                      className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      className="px-6 py-3 text-right text-xs font-medium text-[var(--text-faint)] uppercase tracking-wider cursor-pointer hover:text-[var(--accent)]"
                       onClick={() => handleSort('total_volume')}
                     >
                       <div className="flex items-center justify-end gap-1">
@@ -630,7 +630,7 @@ const AltcoinMonitor = () => {
                       </div>
                     </th>
                     <th 
-                      className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      className="px-6 py-3 text-right text-xs font-medium text-[var(--text-faint)] uppercase tracking-wider cursor-pointer hover:text-[var(--accent)]"
                       onClick={() => handleSort('volume_to_mcap_ratio')}
                     >
                       <div className="flex items-center justify-end gap-1">
@@ -638,7 +638,7 @@ const AltcoinMonitor = () => {
                       </div>
                     </th>
                     <th 
-                      className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      className="px-6 py-3 text-right text-xs font-medium text-[var(--text-faint)] uppercase tracking-wider cursor-pointer hover:text-[var(--accent)]"
                       onClick={() => handleSort('price_change_24h')}
                     >
                       <div className="flex items-center justify-end gap-1">
@@ -647,43 +647,43 @@ const AltcoinMonitor = () => {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="divide-y divide-[var(--border)]">
                   {sortedCoins.map((coin) => (
-                    <tr key={coin.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <tr key={coin.id} className="hover:bg-[var(--bg)] transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-faint)]">
                         #{coin.rank}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           {coin.image && <img src={coin.image} alt={coin.name} className="w-8 h-8 mr-3 rounded-full" />}
                           <div>
-                            <div className="text-sm font-medium text-gray-900">{coin.name}</div>
-                            <div className="text-sm text-gray-500">{coin.symbol.toUpperCase()}</div>
+                            <div className="text-sm font-medium text-[var(--text)]">{coin.name}</div>
+                            <div className="text-sm text-[var(--text-muted)]">{coin.symbol.toUpperCase()}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-[var(--text)]">
                         ${coin.price?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-[var(--text)]">
                         {formatNumber(coin.market_cap)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-[var(--text)]">
                         {formatNumber(coin.total_volume)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
-                        <span className={`px-2 py-1 rounded-full font-semibold ${
-                          coin.volume_to_mcap_ratio >= 100 ? 'bg-orange-100 text-orange-800' :
-                          coin.volume_to_mcap_ratio >= 50 ? 'bg-green-100 text-green-800' :
-                          coin.volume_to_mcap_ratio >= 20 ? 'bg-blue-100 text-blue-800' :
-                          'bg-gray-100 text-gray-800'
+                        <span className={`px-2 py-1 rounded-full font-semibold border ${
+                          coin.volume_to_mcap_ratio >= 100 ? 'bg-[var(--panel)] text-[var(--semantic-red)] border-[var(--semantic-red)]' :
+                          coin.volume_to_mcap_ratio >= 50 ? 'bg-[var(--panel)] text-[var(--semantic-green)] border-[var(--semantic-green)]' :
+                          coin.volume_to_mcap_ratio >= 20 ? 'bg-[var(--panel)] text-[var(--accent)] border-[var(--accent)]' :
+                          'bg-[var(--panel)] text-[var(--text-muted)] border-[var(--border)]'
                         }`}>
                           {coin.volume_to_mcap_ratio?.toFixed(1) || 0}%
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
                         <span className={`font-semibold ${
-                          coin.price_change_24h > 0 ? 'text-green-600' : 'text-red-600'
+                          coin.price_change_24h > 0 ? 'text-[var(--semantic-green)]' : 'text-[var(--semantic-red)]'
                         }`}>
                           {coin.price_change_24h > 0 ? '+' : ''}
                           {coin.price_change_24h?.toFixed(2) || 0}%
@@ -696,19 +696,19 @@ const AltcoinMonitor = () => {
             </div>
             
             {sortedCoins.length === 0 && !loading && coins.length > 0 && (
-              <div className="text-center py-12 text-gray-500">
-                <Filter className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+              <div className="text-center py-12 text-[var(--text-muted)]">
+                <Filter className="w-12 h-12 mx-auto mb-3 text-[var(--text-faint)]" />
                 <p className="font-semibold">No coins match the current filters</p>
                 <p className="text-sm mt-1">Try lowering the Min Vol/MCap % to 10-20%</p>
-                <p className="text-xs mt-2 text-gray-400">
+                <p className="text-xs mt-2 text-[var(--text-faint)]">
                   Currently filtering from {coins.length} coins
                 </p>
               </div>
             )}
             
             {coins.length === 0 && !loading && (
-              <div className="text-center py-12 text-gray-500">
-                <AlertCircle className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+              <div className="text-center py-12 text-[var(--text-muted)]">
+                <AlertCircle className="w-12 h-12 mx-auto mb-3 text-[var(--text-faint)]" />
                 <p className="font-semibold">No data loaded</p>
                 <p className="text-sm mt-1">
                   Click the Refresh button to fetch coins
@@ -723,10 +723,10 @@ const AltcoinMonitor = () => {
             {sortedCoins.length > 0 ? (
               <CardView coins={sortedCoins} formatNumber={formatNumber} />
             ) : (
-              <div className="bg-white rounded-lg shadow-lg p-12 text-center text-gray-500">
+              <div className="bg-[var(--panel)] rounded-lg border border-[var(--border)] p-12 text-center text-[var(--text-muted)]">
                 {coins.length === 0 && !loading ? (
                   <>
-                    <AlertCircle className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                    <AlertCircle className="w-12 h-12 mx-auto mb-3 text-[var(--text-faint)]" />
                     <p className="font-semibold">No data loaded</p>
                     <p className="text-sm mt-1">
                       Click the Refresh button to fetch coins
@@ -734,10 +734,10 @@ const AltcoinMonitor = () => {
                   </>
                 ) : (
                   <>
-                    <Filter className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                    <Filter className="w-12 h-12 mx-auto mb-3 text-[var(--text-faint)]" />
                     <p className="font-semibold">No coins match the current filters</p>
                     <p className="text-sm mt-1">Try lowering the Min Vol/MCap % to 10-20%</p>
-                    <p className="text-xs mt-2 text-gray-400">
+                    <p className="text-xs mt-2 text-[var(--text-faint)]">
                       Currently filtering from {coins.length} coins
                     </p>
                   </>
@@ -752,10 +752,10 @@ const AltcoinMonitor = () => {
             {sortedCoins.length > 0 ? (
               <DenseView coins={sortedCoins} formatNumber={formatNumber} onSort={handleSort} sortConfig={sortConfig} />
             ) : (
-              <div className="bg-white rounded-lg shadow-lg p-12 text-center text-gray-500">
+              <div className="bg-[var(--panel)] rounded-lg border border-[var(--border)] p-12 text-center text-[var(--text-muted)]">
                 {coins.length === 0 && !loading ? (
                   <>
-                    <AlertCircle className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                    <AlertCircle className="w-12 h-12 mx-auto mb-3 text-[var(--text-faint)]" />
                     <p className="font-semibold">No data loaded</p>
                     <p className="text-sm mt-1">
                       Click the Refresh button to fetch coins
@@ -763,10 +763,10 @@ const AltcoinMonitor = () => {
                   </>
                 ) : (
                   <>
-                    <Filter className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                    <Filter className="w-12 h-12 mx-auto mb-3 text-[var(--text-faint)]" />
                     <p className="font-semibold">No coins match the current filters</p>
                     <p className="text-sm mt-1">Try lowering the Min Vol/MCap % to 10-20%</p>
-                    <p className="text-xs mt-2 text-gray-400">
+                    <p className="text-xs mt-2 text-[var(--text-faint)]">
                       Currently filtering from {coins.length} coins
                     </p>
                   </>
@@ -777,11 +777,11 @@ const AltcoinMonitor = () => {
         )}
 
         {/* Footer Info */}
-        <div className="mt-6 text-center text-sm text-gray-600">
+        <div className="mt-6 text-center text-sm text-[var(--text-muted)]">
           <p>Data provided by CoinGecko API via local proxy • Cache TTL: 5 minutes</p>
           <p className="mt-1">Volume spikes detected when volume increases by &gt;{filters.volumeSpikeThreshold}% between refreshes</p>
-          <p className="mt-1 text-xs text-gray-500">Vol/MCap % = (24h Volume / Market Cap) × 100</p>
-          <p className="mt-2 text-xs text-gray-400">
+          <p className="mt-1 text-xs text-[var(--text-faint)]">Vol/MCap % = (24h Volume / Market Cap) × 100</p>
+          <p className="mt-2 text-xs text-[var(--text-faint)]">
             Single bulk API call per refresh • Rate limited with exponential backoff • Max 3 retries
           </p>
         </div>

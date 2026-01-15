@@ -14,7 +14,7 @@ const CardView: React.FC<CardViewProps> = ({ coins, formatNumber }) => {
       {coins.map((coin) => (
         <div
           key={coin.id}
-          className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-200 p-4"
+          className="bg-[var(--panel)] rounded-lg border border-[var(--border)] hover:border-[var(--accent)] transition-colors p-4"
         >
           {/* Coin Header */}
           <div className="flex items-start justify-between mb-3">
@@ -27,31 +27,31 @@ const CardView: React.FC<CardViewProps> = ({ coins, formatNumber }) => {
                 />
               )}
               <div className="min-w-0">
-                <div className="text-sm font-semibold text-gray-900 truncate">
+                <div className="text-sm font-semibold text-[var(--text)] truncate">
                   {coin.name}
                 </div>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-[var(--text-faint)]">
                   #{coin.rank}
                 </div>
               </div>
             </div>
             <div className="text-right ml-2">
-              <div className="text-xs font-medium text-gray-600">
+              <div className="text-xs font-medium text-[var(--text-muted)]">
                 {coin.symbol.toUpperCase()}
               </div>
             </div>
           </div>
 
           {/* Price */}
-          <div className="mb-3 pb-3 border-b border-gray-100">
-            <div className="text-2xl font-bold text-gray-900">
+          <div className="mb-3 pb-3 border-b border-[var(--border)]">
+            <div className="text-2xl font-bold text-[var(--text)]">
               ${coin.price?.toLocaleString(undefined, {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 6
               })}
             </div>
             <div className={`text-sm font-semibold flex items-center gap-1 ${
-              coin.price_change_24h > 0 ? 'text-green-600' : 'text-red-600'
+              coin.price_change_24h > 0 ? 'text-[var(--semantic-green)]' : 'text-[var(--semantic-red)]'
             }`}>
               {coin.price_change_24h > 0 ? (
                 <TrendingUp className="w-4 h-4" />
@@ -66,28 +66,28 @@ const CardView: React.FC<CardViewProps> = ({ coins, formatNumber }) => {
           {/* Stats Grid */}
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-600">Market Cap</span>
-              <span className="font-medium text-gray-900">
+              <span className="text-[var(--text-muted)]">Market Cap</span>
+              <span className="font-medium text-[var(--text)]">
                 {formatNumber(coin.market_cap)}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">24h Volume</span>
-              <span className="font-medium text-gray-900">
+              <span className="text-[var(--text-muted)]">24h Volume</span>
+              <span className="font-medium text-[var(--text)]">
                 {formatNumber(coin.total_volume)}
               </span>
             </div>
-            <div className="flex justify-between pt-2 border-t border-gray-100">
-              <span className="text-gray-600">Vol/MCap</span>
+            <div className="flex justify-between pt-2 border-t border-[var(--border)]">
+              <span className="text-[var(--text-muted)]">Vol/MCap</span>
               <span
-                className={`px-2 py-1 rounded font-semibold text-xs ${
+                className={`px-2 py-1 rounded font-semibold text-xs border ${
                   coin.volume_to_mcap_ratio >= 100
-                    ? 'bg-orange-100 text-orange-800'
+                    ? 'bg-[var(--panel)] text-[var(--semantic-red)] border-[var(--semantic-red)]'
                     : coin.volume_to_mcap_ratio >= 50
-                    ? 'bg-green-100 text-green-800'
+                    ? 'bg-[var(--panel)] text-[var(--semantic-green)] border-[var(--semantic-green)]'
                     : coin.volume_to_mcap_ratio >= 20
-                    ? 'bg-blue-100 text-blue-800'
-                    : 'bg-gray-100 text-gray-800'
+                    ? 'bg-[var(--panel)] text-[var(--accent)] border-[var(--accent)]'
+                    : 'bg-[var(--panel)] text-[var(--text-muted)] border-[var(--border)]'
                 }`}
               >
                 {coin.volume_to_mcap_ratio?.toFixed(1) || 0}%

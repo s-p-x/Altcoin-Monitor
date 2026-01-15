@@ -12,24 +12,24 @@ interface DenseViewProps {
 
 const DenseView: React.FC<DenseViewProps> = ({ coins, formatNumber, onSort, sortConfig }) => {
   const SortIcon = ({ columnKey }: { columnKey: string }) => {
-    if (sortConfig.key !== columnKey) return <span className="text-gray-300 text-xs">⇅</span>;
-    return <span className="text-xs">{sortConfig.direction === 'desc' ? '↓' : '↑'}</span>;
+    if (sortConfig.key !== columnKey) return <span className="text-[var(--text-faint)] text-xs">⇅</span>;
+    return <span className="text-[var(--accent)] text-xs">{sortConfig.direction === 'desc' ? '↓' : '↑'}</span>;
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+    <div className="bg-[var(--panel)] rounded-lg border border-[var(--border)] overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-[var(--border)]">
+          <thead className="bg-[var(--bg)] border-b border-[var(--border)]">
             <tr>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-2 text-left text-xs font-medium text-[var(--text-faint)] uppercase tracking-wider">
                 Rank
               </th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-2 text-left text-xs font-medium text-[var(--text-faint)] uppercase tracking-wider">
                 Coin
               </th>
               <th
-                className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                className="px-4 py-2 text-right text-xs font-medium text-[var(--text-faint)] uppercase tracking-wider cursor-pointer hover:text-[var(--accent)]"
                 onClick={() => onSort('price')}
               >
                 <div className="flex items-center justify-end gap-1">
@@ -37,7 +37,7 @@ const DenseView: React.FC<DenseViewProps> = ({ coins, formatNumber, onSort, sort
                 </div>
               </th>
               <th
-                className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                className="px-4 py-2 text-right text-xs font-medium text-[var(--text-faint)] uppercase tracking-wider cursor-pointer hover:text-[var(--accent)]"
                 onClick={() => onSort('market_cap')}
               >
                 <div className="flex items-center justify-end gap-1">
@@ -45,7 +45,7 @@ const DenseView: React.FC<DenseViewProps> = ({ coins, formatNumber, onSort, sort
                 </div>
               </th>
               <th
-                className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                className="px-4 py-2 text-right text-xs font-medium text-[var(--text-faint)] uppercase tracking-wider cursor-pointer hover:text-[var(--accent)]"
                 onClick={() => onSort('total_volume')}
               >
                 <div className="flex items-center justify-end gap-1">
@@ -53,7 +53,7 @@ const DenseView: React.FC<DenseViewProps> = ({ coins, formatNumber, onSort, sort
                 </div>
               </th>
               <th
-                className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                className="px-4 py-2 text-right text-xs font-medium text-[var(--text-faint)] uppercase tracking-wider cursor-pointer hover:text-[var(--accent)]"
                 onClick={() => onSort('volume_to_mcap_ratio')}
               >
                 <div className="flex items-center justify-end gap-1">
@@ -61,7 +61,7 @@ const DenseView: React.FC<DenseViewProps> = ({ coins, formatNumber, onSort, sort
                 </div>
               </th>
               <th
-                className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                className="px-4 py-2 text-right text-xs font-medium text-[var(--text-faint)] uppercase tracking-wider cursor-pointer hover:text-[var(--accent)]"
                 onClick={() => onSort('price_change_24h')}
               >
                 <div className="flex items-center justify-end gap-1">
@@ -70,10 +70,10 @@ const DenseView: React.FC<DenseViewProps> = ({ coins, formatNumber, onSort, sort
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="divide-y divide-[var(--border)]">
             {coins.map((coin) => (
-              <tr key={coin.id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-4 py-2 whitespace-nowrap text-xs text-gray-500">
+              <tr key={coin.id} className="hover:bg-[var(--bg)] transition-colors">
+                <td className="px-4 py-2 whitespace-nowrap text-xs text-[var(--text-faint)]">
                   #{coin.rank}
                 </td>
                 <td className="px-4 py-2 whitespace-nowrap">
@@ -86,37 +86,37 @@ const DenseView: React.FC<DenseViewProps> = ({ coins, formatNumber, onSort, sort
                       />
                     )}
                     <div>
-                      <div className="text-xs font-medium text-gray-900">
+                      <div className="text-xs font-medium text-[var(--text)]">
                         {coin.name}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-[var(--text-muted)]">
                         {coin.symbol.toUpperCase()}
                       </div>
                     </div>
                   </div>
                 </td>
-                <td className="px-4 py-2 whitespace-nowrap text-xs text-right text-gray-900 font-medium">
+                <td className="px-4 py-2 whitespace-nowrap text-xs text-right text-[var(--text)] font-medium">
                   ${coin.price?.toLocaleString(undefined, {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 4
                   })}
                 </td>
-                <td className="px-4 py-2 whitespace-nowrap text-xs text-right text-gray-900">
+                <td className="px-4 py-2 whitespace-nowrap text-xs text-right text-[var(--text)]">
                   {formatNumber(coin.market_cap)}
                 </td>
-                <td className="px-4 py-2 whitespace-nowrap text-xs text-right text-gray-900 font-medium">
+                <td className="px-4 py-2 whitespace-nowrap text-xs text-right text-[var(--text)] font-medium">
                   {formatNumber(coin.total_volume)}
                 </td>
                 <td className="px-4 py-2 whitespace-nowrap text-xs text-right">
                   <span
-                    className={`px-1.5 py-0.5 rounded text-xs font-semibold ${
+                    className={`px-1.5 py-0.5 rounded text-xs font-semibold border ${
                       coin.volume_to_mcap_ratio >= 100
-                        ? 'bg-orange-100 text-orange-800'
+                        ? 'bg-[var(--panel)] text-[var(--semantic-red)] border-[var(--semantic-red)]'
                         : coin.volume_to_mcap_ratio >= 50
-                        ? 'bg-green-100 text-green-800'
+                        ? 'bg-[var(--panel)] text-[var(--semantic-green)] border-[var(--semantic-green)]'
                         : coin.volume_to_mcap_ratio >= 20
-                        ? 'bg-blue-100 text-blue-800'
-                        : 'bg-gray-100 text-gray-800'
+                        ? 'bg-[var(--panel)] text-[var(--accent)] border-[var(--accent)]'
+                        : 'bg-[var(--panel)] text-[var(--text-muted)] border-[var(--border)]'
                     }`}
                   >
                     {coin.volume_to_mcap_ratio?.toFixed(0) || 0}%
@@ -125,7 +125,7 @@ const DenseView: React.FC<DenseViewProps> = ({ coins, formatNumber, onSort, sort
                 <td className="px-4 py-2 whitespace-nowrap text-xs text-right">
                   <span
                     className={`font-semibold flex items-center justify-end gap-0.5 ${
-                      coin.price_change_24h > 0 ? 'text-green-600' : 'text-red-600'
+                      coin.price_change_24h > 0 ? 'text-[var(--semantic-green)]' : 'text-[var(--semantic-red)]'
                     }`}
                   >
                     {coin.price_change_24h > 0 ? (

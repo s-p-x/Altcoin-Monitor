@@ -35,7 +35,7 @@ const ViewToggle: React.FC<ViewToggleProps> = ({ viewMode, onChange }) => {
   ];
 
   return (
-    <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+    <div className="flex items-center gap-1 bg-[var(--panel)] rounded-lg p-1 border border-[var(--border)]">
       {views.map(({ mode, icon, label, tooltip }) => (
         <button
           key={mode}
@@ -46,15 +46,15 @@ const ViewToggle: React.FC<ViewToggleProps> = ({ viewMode, onChange }) => {
           title={tooltip}
           className={`p-2 rounded-md transition-all duration-200 relative group ${
             viewMode === mode
-              ? 'bg-blue-600 text-white shadow-md'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
+              ? 'bg-[var(--accent)] text-white border border-[var(--accent)]'
+              : 'text-[var(--text-muted)] hover:text-[var(--text)] border border-[var(--border)] hover:border-[var(--accent)]'
           }`}
         >
           {icon}
           
           {/* Tooltip */}
           <div
-            className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap pointer-events-none transition-opacity duration-200 ${
+            className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[var(--panel)] text-[var(--text)] text-xs rounded whitespace-nowrap pointer-events-none transition-opacity duration-200 border border-[var(--border)] ${
               hoverView === mode ? 'opacity-100' : 'opacity-0'
             }`}
           >
