@@ -14,7 +14,7 @@
   
   /* Background texture controls */
   --bg-texture-enabled: 1;
-  --bg-texture-opacity: 0.03;
+  --bg-texture-opacity: 0.08;
 }
 
 @theme inline {

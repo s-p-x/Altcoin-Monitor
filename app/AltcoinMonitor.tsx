@@ -553,7 +553,7 @@ const AltcoinMonitor = () => {
               <button
                 onClick={() => fetchCoins(true)}
                 disabled={loading}
-                className="px-4 py-2 bg-[var(--accent)] bg-opacity-10 text-[var(--accent)] rounded-md hover:bg-opacity-20 disabled:bg-[var(--text-faint)] disabled:bg-opacity-5 disabled:text-[var(--text-faint)] flex items-center gap-2 border border-[var(--accent)] disabled:border-[var(--border)] transition-all font-medium"
+                className="px-4 py-2 bg-[var(--accent)] bg-opacity-15 text-white rounded-md hover:bg-opacity-25 disabled:bg-[var(--text-faint)] disabled:bg-opacity-5 disabled:text-[var(--text-faint)] flex items-center gap-2 border border-[var(--accent)] disabled:border-[var(--border)] transition-all font-medium"
               >
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                 {loading ? 'Loading...' : 'Refresh'}
