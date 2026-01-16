@@ -447,7 +447,7 @@ const AltcoinMonitor = () => {
                     <img 
                       src="/connected.svg" 
                       alt="Connected" 
-                      className="w-4 h-4" 
+                      className="w-6 h-6" 
                       style={{ imageRendering: 'pixelated' }}
                       onError={(e) => {
                         // Fallback to a simple green dot if sprite fails to load
