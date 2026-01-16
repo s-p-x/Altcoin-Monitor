@@ -1,10 +1,13 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { TrendingUp, RefreshCw, Download, Bell, Filter, AlertCircle, CheckCircle, Key, Clock } from 'lucide-react';
+import { TrendingUp, RefreshCw, Download, Bell, Filter, AlertCircle, CheckCircle, Key, Clock, Calendar } from 'lucide-react';
 import ViewToggle, { type ViewMode } from './components/ViewToggle';
 import CardView from './components/CardView';
 import DenseView from './components/DenseView';
+import Snapshot from './components/Snapshot';
+
+type TabType = 'monitor' | 'snapshot';
 
 const AltcoinMonitor = () => {
   const [coins, setCoins] = useState<any[]>([]);
@@ -32,6 +35,7 @@ const AltcoinMonitor = () => {
   const [retryCount, setRetryCount] = useState(0);
   const [debugInfo, setDebugInfo] = useState<any>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('table');
+  const [activeTab, setActiveTab] = useState<TabType>('monitor');
   const [openHelp, setOpenHelp] = useState<null | 'mcapMin' | 'mcapMax' | 'volRange' | 'volMcap' | 'spikeThreshold'>(null);
   const filterContainerRef = useRef<HTMLDivElement>(null);
 
@@ -39,7 +43,7 @@ const AltcoinMonitor = () => {
   const MAX_RETRIES = 3;
   const BASE_BACKOFF = 1000; // 1 second
 
-  // Load API key and view mode from localStorage on mount
+  // Load API key, view mode, and active tab from localStorage on mount
   useEffect(() => {
     const stored = localStorage.getItem('coingeckoApiKey');
     if (stored) {
@@ -47,11 +51,21 @@ const AltcoinMonitor = () => {
       setApiKeySet(true);
     }
     
+    const savedTab = localStorage.getItem('activeTab') as TabType | null;
+    if (savedTab && ['monitor', 'snapshot'].includes(savedTab)) {
+      setActiveTab(savedTab);
+    }
+    
     const savedViewMode = localStorage.getItem('viewMode') as ViewMode | null;
     if (savedViewMode && ['table', 'cards', 'dense'].includes(savedViewMode)) {
       setViewMode(savedViewMode);
     }
   }, []);
+
+  // Save active tab to localStorage
+  useEffect(() => {
+    localStorage.setItem('activeTab', activeTab);
+  }, [activeTab]);
 
   // Close popover when clicking outside
   useEffect(() => {
@@ -429,6 +443,36 @@ const AltcoinMonitor = () => {
             </div>
           </div>
         )}
+
+        {/* Tab Navigation */}
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setActiveTab('monitor')}
+            className={`px-4 py-2 rounded-lg font-medium transition-all border flex items-center gap-2 ${
+              activeTab === 'monitor'
+                ? 'bg-[var(--accent)] text-white border-[var(--accent)]'
+                : 'bg-[var(--panel)] text-[var(--text-muted)] border-[var(--border)] hover:border-[var(--accent)] hover:text-[var(--text)]'
+            }`}
+          >
+            <TrendingUp className="w-4 h-4" />
+            Monitor
+          </button>
+          <button
+            onClick={() => setActiveTab('snapshot')}
+            className={`px-4 py-2 rounded-lg font-medium transition-all border flex items-center gap-2 ${
+              activeTab === 'snapshot'
+                ? 'bg-[var(--accent)] text-white border-[var(--accent)]'
+                : 'bg-[var(--panel)] text-[var(--text-muted)] border-[var(--border)] hover:border-[var(--accent)] hover:text-[var(--text)]'
+            }`}
+          >
+            <Calendar className="w-4 h-4" />
+            Snapshot
+          </button>
+        </div>
+
+        {/* Monitor Tab Content */}
+        {activeTab === 'monitor' && (
+          <>
 
         {/* Header */}
         <div className="bg-[var(--panel)] rounded-lg border border-[var(--border)] p-6 mb-6">
@@ -896,6 +940,13 @@ const AltcoinMonitor = () => {
             Single bulk API call per refresh • Rate limited with exponential backoff • Max 3 retries
           </p>
         </div>
+        </>
+        )}
+
+        {/* Snapshot Tab Content */}
+        {activeTab === 'snapshot' && (
+          <Snapshot />
+        )}
       </div>
     </div>
   );
