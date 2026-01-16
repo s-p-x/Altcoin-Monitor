@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { TrendingUp, RefreshCw, Download, Bell, Filter, AlertCircle, CheckCircle, Key, Clock } from 'lucide-react';
 import ViewToggle, { type ViewMode } from './components/ViewToggle';
 import CardView from './components/CardView';
@@ -32,6 +32,8 @@ const AltcoinMonitor = () => {
   const [retryCount, setRetryCount] = useState(0);
   const [debugInfo, setDebugInfo] = useState<any>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('table');
+  const [openHelp, setOpenHelp] = useState<null | 'mcapMin' | 'mcapMax' | 'volRange' | 'volMcap' | 'spikeThreshold'>(null);
+  const filterContainerRef = useRef<HTMLDivElement>(null);
 
   const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
   const MAX_RETRIES = 3;
@@ -50,6 +52,20 @@ const AltcoinMonitor = () => {
       setViewMode(savedViewMode);
     }
   }, []);
+
+  // Close popover when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (filterContainerRef.current && !filterContainerRef.current.contains(e.target as Node)) {
+        setOpenHelp(null);
+      }
+    };
+    
+    if (openHelp) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [openHelp]);
 
   // Save API key to localStorage
   const saveApiKey = () => {
@@ -305,6 +321,31 @@ const AltcoinMonitor = () => {
     localStorage.setItem('viewMode', newMode);
   };
 
+  // Toggle help popover
+  const toggleHelp = (helpId: 'mcapMin' | 'mcapMax' | 'volRange' | 'volMcap' | 'spikeThreshold') => {
+    if (helpId === 'mcapMin' || helpId === 'mcapMax') {
+      // Min/Max Market Cap open individually
+      setOpenHelp(openHelp === helpId ? null : helpId);
+    } else if (helpId === 'volRange') {
+      // Min/Max Volume open together
+      setOpenHelp(openHelp === 'volRange' ? null : 'volRange');
+    } else {
+      // Vol/MCap % and Spike Threshold open individually
+      setOpenHelp(openHelp === helpId ? null : helpId);
+    }
+  };
+
+  // Popover component
+  const HelpPopover = ({ title, text }: { title: string; text: string }) => (
+    <div className="absolute bottom-full left-0 mb-2 w-48 bg-gray-900 border border-gray-700 rounded-lg p-3 shadow-lg z-50">
+      <div className="text-sm text-gray-100">
+        <div className="font-semibold text-white mb-1">{title}</div>
+        <div className="text-gray-300">{text}</div>
+      </div>
+      <div className="absolute top-full left-3 w-2 h-2 bg-gray-900 border-r border-b border-gray-700 transform rotate-45"></div>
+    </div>
+  );
+
   // Export to CSV
   const exportToCSV = () => {
     const headers = ['Rank', 'Name', 'Symbol', 'Price', 'Market Cap', '24h Volume', 'Vol/MCap %', '24h Price Change %'];
@@ -402,14 +443,25 @@ const AltcoinMonitor = () => {
                   {lastUpdate && `Last updated: ${lastUpdate.toLocaleTimeString()}`}
                 </p>
                 {apiStatus === 'success' && (
-                  <span className="flex items-center gap-1 text-[var(--semantic-green)] text-sm">
-                    <CheckCircle className="w-4 h-4" /> API Connected
-                  </span>
+                  <div className="flex items-center gap-2 px-3 py-1 bg-green-900 bg-opacity-30 border border-green-700 rounded-full">
+                    <img 
+                      src="/connected.svg" 
+                      alt="Connected" 
+                      className="w-4 h-4" 
+                      style={{ imageRendering: 'pixelated' }}
+                      onError={(e) => {
+                        // Fallback to a simple green dot if sprite fails to load
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                    <span className="text-[var(--semantic-green)] text-sm font-medium">API Connected</span>
+                  </div>
                 )}
                 {apiStatus === 'error' && (
-                  <span className="flex items-center gap-1 text-[var(--semantic-red)] text-sm">
-                    <AlertCircle className="w-4 h-4" /> API Error
-                  </span>
+                  <div className="flex items-center gap-2 px-3 py-1 bg-red-900 bg-opacity-30 border border-red-700 rounded-full">
+                    <div className="w-4 h-4 bg-[var(--semantic-red)] rounded-full"></div>
+                    <span className="text-[var(--semantic-red)] text-sm font-medium">API Error</span>
+                  </div>
                 )}
                 {cacheExpiry && isCacheValid() && (
                   <span className="flex items-center gap-1 text-[var(--accent)] text-sm">
@@ -482,73 +534,132 @@ const AltcoinMonitor = () => {
           )}
 
           {/* Filters */}
-          <div className="grid grid-cols-5 gap-4 p-4 bg-[var(--bg)] rounded-lg border border-[var(--border)]">
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-muted)] mb-1">
+          <div className="grid grid-cols-5 gap-4 p-4 bg-[var(--bg)] rounded-lg border border-[var(--border)]" ref={filterContainerRef}>
+            {/* Min Market Cap */}
+            <div className="relative">
+              <label 
+                className="block text-sm font-medium text-[var(--text-muted)] mb-1 cursor-help hover:text-[var(--text)] transition-colors"
+                onClick={() => toggleHelp('mcapMin')}
+              >
                 Min Market Cap
               </label>
               <input
                 type="number"
                 value={filters.minMarketCap}
                 onChange={(e) => setFilters({ ...filters, minMarketCap: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 border border-[var(--border)] bg-[var(--panel)] text-[var(--text)] rounded-lg text-sm focus:outline-none focus:border-[var(--accent)]"
+                onClick={() => toggleHelp('mcapMin')}
+                className="w-full px-3 py-2 border border-[var(--border)] bg-[var(--panel)] text-[var(--text)] rounded-lg text-sm focus:outline-none focus:border-[var(--accent)] cursor-help"
               />
+              {openHelp === 'mcapMin' && (
+                <HelpPopover 
+                  title="Min Market Cap" 
+                  text="Hide microcaps. Only show coins above this market cap."
+                />
+              )}
               <span className="text-xs text-[var(--text-faint)]">
                 {formatNumber(filters.minMarketCap)}
               </span>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-muted)] mb-1">
+
+            {/* Max Market Cap */}
+            <div className="relative">
+              <label 
+                className="block text-sm font-medium text-[var(--text-muted)] mb-1 cursor-help hover:text-[var(--text)] transition-colors"
+                onClick={() => toggleHelp('mcapMax')}
+              >
                 Max Market Cap
               </label>
               <input
                 type="number"
                 value={filters.maxMarketCap}
                 onChange={(e) => setFilters({ ...filters, maxMarketCap: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 border border-[var(--border)] bg-[var(--panel)] text-[var(--text)] rounded-lg text-sm focus:outline-none focus:border-[var(--accent)]"
+                onClick={() => toggleHelp('mcapMax')}
+                className="w-full px-3 py-2 border border-[var(--border)] bg-[var(--panel)] text-[var(--text)] rounded-lg text-sm focus:outline-none focus:border-[var(--accent)] cursor-help"
               />
+              {openHelp === 'mcapMax' && (
+                <HelpPopover 
+                  title="Max Market Cap" 
+                  text="Hide large caps. Only show coins below this market cap."
+                />
+              )}
               <span className="text-xs text-[var(--text-faint)]">
                 {formatNumber(filters.maxMarketCap)}
               </span>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-muted)] mb-1">
+
+            {/* Min/Max Volume (Combined) */}
+            <div className="relative">
+              <label 
+                className="block text-sm font-medium text-[var(--text-muted)] mb-1 cursor-help hover:text-[var(--text)] transition-colors"
+                onClick={() => toggleHelp('volRange')}
+              >
                 Min Volume (24h)
               </label>
               <input
                 type="number"
                 value={filters.minVolume}
                 onChange={(e) => setFilters({ ...filters, minVolume: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 border border-[var(--border)] bg-[var(--panel)] text-[var(--text)] rounded-lg text-sm focus:outline-none focus:border-[var(--accent)]"
+                onClick={() => toggleHelp('volRange')}
+                className="w-full px-3 py-2 border border-[var(--border)] bg-[var(--panel)] text-[var(--text)] rounded-lg text-sm focus:outline-none focus:border-[var(--accent)] cursor-help"
               />
+              {openHelp === 'volRange' && (
+                <HelpPopover 
+                  title="Volume Range (24h)" 
+                  text="Only show coins whose 24h volume is within this range."
+                />
+              )}
               <span className="text-xs text-[var(--text-faint)]">
                 {formatNumber(filters.minVolume)}
               </span>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-muted)] mb-1">
+
+            {/* Min Vol/MCap % */}
+            <div className="relative">
+              <label 
+                className="block text-sm font-medium text-[var(--text-muted)] mb-1 cursor-help hover:text-[var(--text)] transition-colors"
+                onClick={() => toggleHelp('volMcap')}
+              >
                 Min Vol/MCap %
               </label>
               <input
                 type="number"
                 value={filters.minVolumeChange}
                 onChange={(e) => setFilters({ ...filters, minVolumeChange: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 border border-[var(--border)] bg-[var(--panel)] text-[var(--text)] rounded-lg text-sm focus:outline-none focus:border-[var(--accent)]"
+                onClick={() => toggleHelp('volMcap')}
+                className="w-full px-3 py-2 border border-[var(--border)] bg-[var(--panel)] text-[var(--text)] rounded-lg text-sm focus:outline-none focus:border-[var(--accent)] cursor-help"
               />
+              {openHelp === 'volMcap' && (
+                <HelpPopover 
+                  title="Min Vol/MCap %" 
+                  text="Liquidity filter. Higher % means volume is large relative to market cap."
+                />
+              )}
               <span className="text-xs text-[var(--text-faint)]">
                 {filters.minVolumeChange}%
               </span>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-muted)] mb-1">
+
+            {/* Spike Threshold % */}
+            <div className="relative">
+              <label 
+                className="block text-sm font-medium text-[var(--text-muted)] mb-1 cursor-help hover:text-[var(--text)] transition-colors"
+                onClick={() => toggleHelp('spikeThreshold')}
+              >
                 Spike Threshold %
               </label>
               <input
                 type="number"
                 value={filters.volumeSpikeThreshold}
                 onChange={(e) => setFilters({ ...filters, volumeSpikeThreshold: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 border border-[var(--border)] bg-[var(--panel)] text-[var(--text)] rounded-lg text-sm focus:outline-none focus:border-[var(--accent)]"
+                onClick={() => toggleHelp('spikeThreshold')}
+                className="w-full px-3 py-2 border border-[var(--border)] bg-[var(--panel)] text-[var(--text)] rounded-lg text-sm focus:outline-none focus:border-[var(--accent)] cursor-help"
               />
+              {openHelp === 'spikeThreshold' && (
+                <HelpPopover 
+                  title="Spike Threshold %" 
+                  text="Flag coins when 24h volume jumps by this % since last refresh."
+                />
+              )}
               <span className="text-xs text-[var(--text-faint)]">
                 {filters.volumeSpikeThreshold}%
               </span>

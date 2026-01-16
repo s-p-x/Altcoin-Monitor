@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <style>
+      @keyframes fly {
+        0% { transform: translateX(-4px); }
+        50% { transform: translateX(2px); }
+        100% { transform: translateX(-4px); }
+      }
+      .flying-sprite {
+        animation: fly 1.5s ease-in-out infinite;
+      }
+    </style>
+  </defs>
+  
+  <!-- Green pixel flying character/sprite -->
+  <!-- Head -->
+  <rect x="12" y="8" width="4" height="4" fill="#22c55e" class="flying-sprite"/>
+  <!-- Body -->
+  <rect x="12" y="12" width="4" height="4" fill="#22c55e" class="flying-sprite"/>
+  <rect x="8" y="12" width="4" height="4" fill="#22c55e" class="flying-sprite"/>
+  <rect x="16" y="12" width="4" height="4" fill="#22c55e" class="flying-sprite"/>
+  <!-- Wings -->
+  <rect x="6" y="14" width="2" height="2" fill="#16a34a" class="flying-sprite"/>
+  <rect x="20" y="14" width="2" height="2" fill="#16a34a" class="flying-sprite"/>
+  <!-- Legs -->
+  <rect x="10" y="16" width="2" height="2" fill="#22c55e" class="flying-sprite"/>
+  <rect x="14" y="16" width="2" height="2" fill="#22c55e" class="flying-sprite"/>
+</svg>
