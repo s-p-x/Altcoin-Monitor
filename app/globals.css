@@ -53,7 +53,7 @@ body::before {
   background-size: 900px 900px;
   background-repeat: repeat;
   background-attachment: fixed;
-  opacity: 0.025;
+  opacity: 0.08;
   pointer-events: none;
   z-index: 0;
 }
