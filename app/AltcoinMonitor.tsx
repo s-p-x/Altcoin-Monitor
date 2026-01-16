@@ -16,6 +16,7 @@ const AltcoinMonitor = () => {
   const [error, setError] = useState(null);
   const [apiKey, setApiKey] = useState('');
   const [apiKeySet, setApiKeySet] = useState(false);
+  const [showApiKeyBox, setShowApiKeyBox] = useState(false);
   const [filters, setFilters] = useState({
     minMarketCap: 125000000,
     maxMarketCap: 25000000000,
@@ -49,6 +50,7 @@ const AltcoinMonitor = () => {
     if (stored) {
       setApiKey(stored);
       setApiKeySet(true);
+      setShowApiKeyBox(false);
     }
     
     const savedTab = localStorage.getItem('activeTab') as TabType | null;
@@ -86,6 +88,7 @@ const AltcoinMonitor = () => {
     if (apiKey.trim()) {
       localStorage.setItem('coingeckoApiKey', apiKey.trim());
       setApiKeySet(true);
+      setShowApiKeyBox(false);
       setError(null);
     }
   };
@@ -95,6 +98,7 @@ const AltcoinMonitor = () => {
     localStorage.removeItem('coingeckoApiKey');
     setApiKey('');
     setApiKeySet(false);
+    setShowApiKeyBox(true);
   };
 
   // Check if cache is still valid
@@ -411,11 +415,23 @@ const AltcoinMonitor = () => {
     <div className="min-h-screen bg-[var(--bg)] p-6">
       <div className="max-w-7xl mx-auto">
         {/* API Key Setup */}
-        {!apiKeySet && (
-          <div className="bg-[var(--panel)] border-l-4 border-[var(--accent)] rounded-lg p-6 mb-6">
+        {!apiKeySet || showApiKeyBox ? (
+          <div className="bg-[var(--panel)] border-l-4 border-[var(--accent)] rounded-lg p-6 mb-6 relative">
+            <button
+              onClick={() => {
+                setShowApiKeyBox(false);
+                setApiKey('');
+              }}
+              className="absolute top-3 right-3 p-1 hover:bg-[var(--border)] rounded-lg transition-all text-[var(--text-muted)] hover:text-[var(--text)]"
+              title="Close API Key Box"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
             <div className="flex items-start gap-3">
               <Key className="w-6 h-6 text-[var(--accent)] mt-1" />
-              <div className="flex-1">
+              <div className="flex-1 pr-8">
                 <h3 className="font-semibold text-[var(--text)] mb-2">CoinGecko API Key (Optional)</h3>
                 <p className="text-sm text-[var(--text-muted)] mb-4">
                   This app uses the free CoinGecko API by default. For higher rate limits, enter your API key from{' '}
@@ -442,7 +458,7 @@ const AltcoinMonitor = () => {
               </div>
             </div>
           </div>
-        )}
+        ) : null}
 
         {/* Tab Navigation */}
         <div className="flex gap-2 mb-6">
@@ -516,7 +532,17 @@ const AltcoinMonitor = () => {
             </div>
             <div className="flex gap-3 flex-wrap items-start">
               <ViewToggle viewMode={viewMode} onChange={handleViewModeChange} />
-              {apiKeySet && (
+              {!showApiKeyBox && (
+                <button
+                  onClick={() => setShowApiKeyBox(true)}
+                  className="px-3 py-2 bg-[var(--panel)] text-[var(--accent)] rounded-lg hover:bg-opacity-80 border border-[var(--accent)] text-sm transition-all flex items-center gap-2"
+                  title="Open API Key Configuration"
+                >
+                  <Key className="w-4 h-4" />
+                  Key
+                </button>
+              )}
+              {apiKeySet && !showApiKeyBox && (
                 <button
                   onClick={clearApiKey}
                   className="px-3 py-2 bg-[var(--panel)] text-[var(--text-muted)] rounded-lg hover:text-[var(--text)] border border-[var(--border)] hover:border-[var(--accent)] text-sm transition-all"
@@ -569,9 +595,9 @@ const AltcoinMonitor = () => {
 
           {/* Debug Info */}
           {debugInfo && (
-            <details className="mb-4 p-3 bg-[var(--bg)] rounded-lg text-xs border border-[var(--border)]">
-              <summary className="cursor-pointer font-semibold text-[var(--text-muted)]">Debug Info</summary>
-              <pre className="mt-2 overflow-x-auto text-[var(--text-faint)]">
+            <details className="mb-4">
+              <summary className="cursor-pointer font-semibold text-[var(--text-muted)] inline-block px-3 py-1 bg-[var(--bg)] rounded-lg border border-[var(--border)] hover:border-[var(--accent)] transition-colors">Debug Info</summary>
+              <pre className="mt-2 p-3 bg-[var(--bg)] rounded-lg text-xs overflow-x-auto text-[var(--text-faint)] border border-[var(--border)]">
                 {JSON.stringify(debugInfo, null, 2)}
               </pre>
             </details>
