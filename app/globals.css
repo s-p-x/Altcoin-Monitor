@@ -14,7 +14,7 @@
   
   /* Background texture controls */
   --bg-texture-enabled: 1;
-  --bg-texture-opacity: 0.08;
+  --bg-texture-opacity: 0.03;
 }
 
 @theme inline {
@@ -25,20 +25,34 @@
 }
 
 html, body {
-  background: var(--bg);
+  margin: 0;
+  padding: 0;
   color: var(--text);
   font-family: var(--font-inter, system-ui, -apple-system, sans-serif);
+  overflow-x: hidden;
+}
+
+html {
+  background: var(--bg);
+}
+
+body {
+  background: var(--bg);
   position: relative;
 }
 
-/* Background texture layer */
+/* Background texture layer - must be before all content */
 body::before {
   content: '';
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background-image: url('/leopard-rosette.svg');
   background-size: 400px 400px;
   background-repeat: repeat;
+  background-attachment: fixed;
   opacity: calc(var(--bg-texture-enabled) * var(--bg-texture-opacity));
   pointer-events: none;
   z-index: 0;
