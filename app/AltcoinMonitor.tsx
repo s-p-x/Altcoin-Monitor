@@ -16,7 +16,7 @@ const AltcoinMonitor = () => {
   const [error, setError] = useState(null);
   const [apiKey, setApiKey] = useState('');
   const [apiKeySet, setApiKeySet] = useState(false);
-  const [showApiKeyBox, setShowApiKeyBox] = useState(false);
+  const [showApiKeyBox, setShowApiKeyBox] = useState(true);
   const [filters, setFilters] = useState({
     minMarketCap: 125000000,
     maxMarketCap: 25000000000,
@@ -415,7 +415,7 @@ const AltcoinMonitor = () => {
     <div className="min-h-screen bg-[var(--bg)] p-6">
       <div className="max-w-7xl mx-auto">
         {/* API Key Setup */}
-        {!apiKeySet || showApiKeyBox ? (
+        {showApiKeyBox ? (
           <div className="bg-[var(--panel)] border-l-4 border-[var(--accent)] rounded-lg p-6 mb-6 relative">
             <button
               onClick={() => {
