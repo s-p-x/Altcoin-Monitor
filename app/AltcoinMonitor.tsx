@@ -438,42 +438,41 @@ const AltcoinMonitor = () => {
                 <TrendingUp className="w-8 h-8 text-[var(--accent)]" />
                 Altcoin Volume Monitor
               </h1>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <p className="text-[var(--text-muted)]">
-                    {lastUpdate && `Last updated: ${lastUpdate.toLocaleTimeString()}`}
-                  </p>
-                  {cacheExpiry && isCacheValid() && (
-                    <span className="flex items-center gap-1 text-[var(--accent)] text-sm">
-                      <Clock className="w-4 h-4" /> Cache: {getCacheTimeRemaining()}
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-3">
-                  {apiStatus === 'success' && (
-                    <div className="flex items-center gap-2 px-3 py-1 bg-green-900 bg-opacity-30 border border-green-700 rounded-full">
-                      <img 
-                        src="/connected.svg" 
-                        alt="Connected" 
-                        className="w-6 h-6" 
-                        style={{ imageRendering: 'pixelated' }}
-                        onError={(e) => {
-                          // Fallback to a simple green dot if sprite fails to load
-                          (e.target as HTMLImageElement).style.display = 'none';
-                        }}
-                      />
-                      <span className="text-[var(--semantic-green)] text-sm font-medium">API Connected</span>
-                    </div>
-                  )}
-                  {apiStatus === 'error' && (
-                    <div className="flex items-center gap-2 px-3 py-1 bg-red-900 bg-opacity-30 border border-red-700 rounded-full">
-                      <div className="w-4 h-4 bg-[var(--semantic-red)] rounded-full"></div>
-                      <span className="text-[var(--semantic-red)] text-sm font-medium">API Error</span>
-                    </div>
-                  )}
-                </div>
+              <div className="flex items-center gap-3 mt-2">
+                <p className="text-[var(--text-muted)]">
+                  {lastUpdate && `Last updated: ${lastUpdate.toLocaleTimeString()}`}
+                </p>
+                {cacheExpiry && isCacheValid() && (
+                  <span className="flex items-center gap-1 text-[var(--accent)] text-sm">
+                    <Clock className="w-4 h-4" /> Cache: {getCacheTimeRemaining()}
+                  </span>
+                )}
               </div>
             </div>
+            <div className="flex gap-3 flex-wrap items-start justify-end">
+              {apiStatus === 'success' && (
+                <div className="flex items-center gap-2 px-3 py-1 bg-green-900 bg-opacity-30 border border-green-700 rounded-full whitespace-nowrap">
+                  <img 
+                    src="/connected.svg" 
+                    alt="Connected" 
+                    className="w-6 h-6" 
+                    style={{ imageRendering: 'pixelated' }}
+                    onError={(e) => {
+                      // Fallback to a simple green dot if sprite fails to load
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                  <span className="text-[var(--semantic-green)] text-sm font-medium">API Connected</span>
+                </div>
+              )}
+              {apiStatus === 'error' && (
+                <div className="flex items-center gap-2 px-3 py-1 bg-red-900 bg-opacity-30 border border-red-700 rounded-full whitespace-nowrap">
+                  <div className="w-4 h-4 bg-[var(--semantic-red)] rounded-full"></div>
+                  <span className="text-[var(--semantic-red)] text-sm font-medium">API Error</span>
+                </div>
+              )}
+            </div>
+          </div>
             <div className="flex gap-3 flex-wrap items-start">
               <ViewToggle viewMode={viewMode} onChange={handleViewModeChange} />
               {apiKeySet && (
