@@ -11,19 +11,43 @@
   --accent: #8B8CF8;
   --semantic-green: #10B981;
   --semantic-red: #EF4444;
+  
+  /* Background texture controls */
+  --bg-texture-enabled: 1;
+  --bg-texture-opacity: 0.03;
 }
 
 @theme inline {
   --color-background: var(--bg);
   --color-foreground: var(--text);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);
 }
 
 html, body {
   background: var(--bg);
   color: var(--text);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter, system-ui, -apple-system, sans-serif);
+  position: relative;
+}
+
+/* Background texture layer */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url('/leopard-rosette.svg');
+  background-size: 400px 400px;
+  background-repeat: repeat;
+  opacity: calc(var(--bg-texture-enabled) * var(--bg-texture-opacity));
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Ensure content sits above texture */
+#__next {
+  position: relative;
+  z-index: 1;
 }
 
 /* Remove default light backgrounds and shadows */
@@ -34,6 +58,11 @@ html, body {
 /* Remove shadows globally */
 button, input, select, textarea, div {
   box-shadow: none !important;
+}
+
+/* Tabular numbers for data alignment */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
 }
 
 /* Style number input arrows */
@@ -47,4 +76,22 @@ input[type="number"]::-webkit-inner-spin-button {
 input[type="number"]::-webkit-outer-spin-button:hover,
 input[type="number"]::-webkit-inner-spin-button:hover {
   background-color: transparent !important;
+}
+
+/* Professional button styling - subdued, tool-like */
+button:not(.no-style) {
+  transition: all 0.15s ease-out;
+  border-radius: 6px;
+}
+
+/* Data table row hover guide */
+tr:hover::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--accent);
+  opacity: 0.4;
 }

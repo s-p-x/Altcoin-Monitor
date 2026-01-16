@@ -1,0 +1,29 @@
+<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="leopard-rosette" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
+      <!-- Large rosette spot -->
+      <circle cx="40" cy="40" r="18" fill="#121218" opacity="0.8"/>
+      
+      <!-- Four surrounding smaller spots forming rosette -->
+      <circle cx="40" cy="20" r="8" fill="#121218" opacity="0.6"/>
+      <circle cx="40" cy="60" r="8" fill="#121218" opacity="0.6"/>
+      <circle cx="20" cy="40" r="8" fill="#121218" opacity="0.6"/>
+      <circle cx="60" cy="40" r="8" fill="#121218" opacity="0.6"/>
+      
+      <!-- Diagonal spots -->
+      <circle cx="25" cy="25" r="6" fill="#121218" opacity="0.5"/>
+      <circle cx="55" cy="25" r="6" fill="#121218" opacity="0.5"/>
+      <circle cx="25" cy="55" r="6" fill="#121218" opacity="0.5"/>
+      <circle cx="55" cy="55" r="6" fill="#121218" opacity="0.5"/>
+      
+      <!-- Fine detail spots -->
+      <circle cx="40" cy="40" r="3" fill="#121218" opacity="0.4"/>
+      <circle cx="35" cy="35" r="2" fill="#121218" opacity="0.3"/>
+      <circle cx="45" cy="45" r="2" fill="#121218" opacity="0.3"/>
+      <circle cx="30" cy="50" r="1.5" fill="#121218" opacity="0.2"/>
+      <circle cx="50" cy="30" r="1.5" fill="#121218" opacity="0.2"/>
+    </pattern>
+  </defs>
+  
+  <rect width="400" height="400" fill="url(#leopard-rosette)"/>
+</svg>

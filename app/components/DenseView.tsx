@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, ChevronUp } from 'lucide-react';
 
 interface DenseViewProps {
   coins: any[];
@@ -72,8 +72,8 @@ const DenseView: React.FC<DenseViewProps> = ({ coins, formatNumber, onSort, sort
           </thead>
           <tbody className="divide-y divide-[var(--border)]">
             {coins.map((coin) => (
-              <tr key={coin.id} className="hover:bg-[var(--bg)] transition-colors">
-                <td className="px-4 py-2 whitespace-nowrap text-xs text-[var(--text-faint)]">
+              <tr key={coin.id} className="hover:bg-[var(--bg)] hover:border-l-2 hover:border-[var(--accent)] transition-all relative">
+                <td className="px-4 py-2 whitespace-nowrap text-xs text-[var(--text-faint)] tabular-nums">
                   #{coin.rank}
                 </td>
                 <td className="px-4 py-2 whitespace-nowrap">
@@ -95,21 +95,21 @@ const DenseView: React.FC<DenseViewProps> = ({ coins, formatNumber, onSort, sort
                     </div>
                   </div>
                 </td>
-                <td className="px-4 py-2 whitespace-nowrap text-xs text-right text-[var(--text)] font-medium">
+                <td className="px-4 py-2 whitespace-nowrap text-xs text-right text-[var(--text)] font-medium tabular-nums">
                   ${coin.price?.toLocaleString(undefined, {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 4
                   })}
                 </td>
-                <td className="px-4 py-2 whitespace-nowrap text-xs text-right text-[var(--text)]">
+                <td className="px-4 py-2 whitespace-nowrap text-xs text-right text-[var(--text)] tabular-nums">
                   {formatNumber(coin.market_cap)}
                 </td>
-                <td className="px-4 py-2 whitespace-nowrap text-xs text-right text-[var(--text)] font-medium">
+                <td className="px-4 py-2 whitespace-nowrap text-xs text-right text-[var(--text)] font-medium tabular-nums">
                   {formatNumber(coin.total_volume)}
                 </td>
                 <td className="px-4 py-2 whitespace-nowrap text-xs text-right">
                   <span
-                    className={`px-1.5 py-0.5 rounded text-xs font-semibold border ${
+                    className={`px-1.5 py-0.5 rounded text-xs font-semibold border flex items-center justify-end gap-1 ${
                       coin.volume_to_mcap_ratio >= 100
                         ? 'bg-[var(--panel)] text-[var(--semantic-red)] border-[var(--semantic-red)]'
                         : coin.volume_to_mcap_ratio >= 50
@@ -119,12 +119,13 @@ const DenseView: React.FC<DenseViewProps> = ({ coins, formatNumber, onSort, sort
                         : 'bg-[var(--panel)] text-[var(--text-muted)] border-[var(--border)]'
                     }`}
                   >
+                    {coin.volume_to_mcap_ratio >= 50 && <ChevronUp className="w-3 h-3" />}
                     {coin.volume_to_mcap_ratio?.toFixed(0) || 0}%
                   </span>
                 </td>
                 <td className="px-4 py-2 whitespace-nowrap text-xs text-right">
                   <span
-                    className={`font-semibold flex items-center justify-end gap-0.5 ${
+                    className={`font-semibold flex items-center justify-end gap-0.5 tabular-nums ${
                       coin.price_change_24h > 0 ? 'text-[var(--semantic-green)]' : 'text-[var(--semantic-red)]'
                     }`}
                   >

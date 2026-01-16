@@ -14,7 +14,7 @@ const CardView: React.FC<CardViewProps> = ({ coins, formatNumber }) => {
       {coins.map((coin) => (
         <div
           key={coin.id}
-          className="bg-[var(--panel)] rounded-lg border border-[var(--border)] hover:border-[var(--accent)] transition-colors p-4"
+          className="bg-[var(--panel)] rounded-md border border-[var(--border)] hover:border-[var(--accent)] transition-all p-4"
         >
           {/* Coin Header */}
           <div className="flex items-start justify-between mb-3">

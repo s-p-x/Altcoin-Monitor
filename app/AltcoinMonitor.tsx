@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { TrendingUp, RefreshCw, Download, Bell, Filter, AlertCircle, CheckCircle, Key, Clock, Calendar } from 'lucide-react';
+import { TrendingUp, RefreshCw, Download, Bell, Filter, AlertCircle, CheckCircle, Key, Clock, Calendar, ChevronUp } from 'lucide-react';
 import ViewToggle, { type ViewMode } from './components/ViewToggle';
 import CardView from './components/CardView';
 import DenseView from './components/DenseView';
@@ -355,7 +355,7 @@ const AltcoinMonitor = () => {
 
   // Popover component
   const HelpPopover = ({ title, text }: { title: string; text: string }) => (
-    <div className="absolute bottom-full left-0 mb-2 w-48 bg-gray-900 border border-gray-700 rounded-lg p-3 shadow-lg z-50">
+    <div className="absolute bottom-full left-0 mb-2 w-48 bg-gray-900 border border-gray-700 rounded-md p-3 shadow-lg z-50">
       <div className="text-sm text-gray-100">
         <div className="font-semibold text-white mb-1">{title}</div>
         <div className="text-gray-300">{text}</div>
@@ -416,13 +416,13 @@ const AltcoinMonitor = () => {
       <div className="max-w-7xl mx-auto">
         {/* API Key Setup */}
         {showApiKeyBox ? (
-          <div className="bg-[var(--panel)] border-l-4 border-[var(--accent)] rounded-lg p-6 mb-6 relative">
+          <div className="bg-[var(--panel)] border-l-4 border-[var(--accent)] rounded-md p-6 mb-6 relative">
             <button
               onClick={() => {
                 setShowApiKeyBox(false);
                 setApiKey('');
               }}
-              className="absolute top-3 right-3 p-1 hover:bg-[var(--border)] rounded-lg transition-all text-[var(--text-muted)] hover:text-[var(--text)]"
+              className="absolute top-3 right-3 p-1 hover:bg-[var(--border)] rounded-md transition-all text-[var(--text-muted)] hover:text-[var(--text)]"
               title="Close API Key Box"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -445,12 +445,12 @@ const AltcoinMonitor = () => {
                     value={apiKey}
                     onChange={(e) => setApiKey(e.target.value)}
                     placeholder="Enter your API key (optional)..."
-                    className="flex-1 px-3 py-2 border border-[var(--border)] bg-[var(--bg)] text-[var(--text)] rounded-lg placeholder-[var(--text-faint)] focus:outline-none focus:border-[var(--accent)]"
+                    className="flex-1 px-3 py-2 border border-[var(--border)] bg-[var(--bg)] text-[var(--text)] rounded-md placeholder-[var(--text-faint)] focus:outline-none focus:border-[var(--accent)]"
                     onKeyPress={(e) => e.key === 'Enter' && saveApiKey()}
                   />
                   <button
                     onClick={saveApiKey}
-                    className="px-4 py-2 bg-[var(--accent)] text-white rounded-lg hover:bg-opacity-80 border border-[var(--accent)] transition-all"
+                    className="px-4 py-2 bg-[var(--panel)] text-[var(--accent)] rounded-md hover:bg-[var(--accent)] hover:bg-opacity-10 border border-[var(--accent)] transition-all text-sm font-medium"
                   >
                     Save Key
                   </button>
@@ -464,7 +464,7 @@ const AltcoinMonitor = () => {
         <div className="flex gap-2 mb-6">
           <button
             onClick={() => setActiveTab('monitor')}
-            className={`px-4 py-2 rounded-lg font-medium transition-all border flex items-center gap-2 ${
+            className={`px-4 py-2 rounded-md font-medium transition-all border flex items-center gap-2 ${
               activeTab === 'monitor'
                 ? 'bg-[var(--accent)] text-white border-[var(--accent)]'
                 : 'bg-[var(--panel)] text-[var(--text-muted)] border-[var(--border)] hover:border-[var(--accent)] hover:text-[var(--text)]'
@@ -475,7 +475,7 @@ const AltcoinMonitor = () => {
           </button>
           <button
             onClick={() => setActiveTab('snapshot')}
-            className={`px-4 py-2 rounded-lg font-medium transition-all border flex items-center gap-2 ${
+            className={`px-4 py-2 rounded-md font-medium transition-all border flex items-center gap-2 ${
               activeTab === 'snapshot'
                 ? 'bg-[var(--accent)] text-white border-[var(--accent)]'
                 : 'bg-[var(--panel)] text-[var(--text-muted)] border-[var(--border)] hover:border-[var(--accent)] hover:text-[var(--text)]'
@@ -491,7 +491,7 @@ const AltcoinMonitor = () => {
           <>
 
         {/* Header */}
-        <div className="bg-[var(--panel)] rounded-lg border border-[var(--border)] p-6 mb-6">
+        <div className="bg-[var(--panel)] rounded-md border border-[var(--border)] p-6 mb-6">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-3xl font-bold text-[var(--text)] flex items-center gap-2">
@@ -535,7 +535,7 @@ const AltcoinMonitor = () => {
               {!showApiKeyBox && (
                 <button
                   onClick={() => setShowApiKeyBox(true)}
-                  className="px-3 py-2 bg-[var(--panel)] text-[var(--accent)] rounded-lg hover:bg-opacity-80 border border-[var(--accent)] text-sm transition-all flex items-center gap-2"
+                  className="px-3 py-2 bg-[var(--panel)] text-[var(--accent)] rounded-md hover:bg-[var(--accent)] hover:bg-opacity-10 border border-[var(--accent)] text-sm transition-all flex items-center gap-2 font-medium"
                   title="Open API Key Configuration"
                 >
                   <Key className="w-4 h-4" />
@@ -545,7 +545,7 @@ const AltcoinMonitor = () => {
               {apiKeySet && !showApiKeyBox && (
                 <button
                   onClick={clearApiKey}
-                  className="px-3 py-2 bg-[var(--panel)] text-[var(--text-muted)] rounded-lg hover:text-[var(--text)] border border-[var(--border)] hover:border-[var(--accent)] text-sm transition-all"
+                  className="px-3 py-2 bg-[var(--panel)] text-[var(--text-muted)] rounded-md hover:text-[var(--text)] hover:border-[var(--accent)] border border-[var(--border)] text-sm transition-all"
                 >
                   Change API Key
                 </button>
@@ -553,7 +553,7 @@ const AltcoinMonitor = () => {
               <button
                 onClick={() => fetchCoins(true)}
                 disabled={loading}
-                className="px-4 py-2 bg-[var(--accent)] text-white rounded-lg hover:bg-opacity-80 disabled:bg-[var(--text-faint)] disabled:text-[var(--text-muted)] flex items-center gap-2 border border-[var(--accent)] transition-all"
+                className="px-4 py-2 bg-[var(--accent)] bg-opacity-10 text-[var(--accent)] rounded-md hover:bg-opacity-20 disabled:bg-[var(--text-faint)] disabled:bg-opacity-5 disabled:text-[var(--text-faint)] flex items-center gap-2 border border-[var(--accent)] disabled:border-[var(--border)] transition-all font-medium"
               >
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                 {loading ? 'Loading...' : 'Refresh'}
@@ -561,15 +561,15 @@ const AltcoinMonitor = () => {
               <button
                 onClick={exportToCSV}
                 disabled={sortedCoins.length === 0}
-                className="px-4 py-2 bg-[var(--panel)] text-[var(--semantic-green)] rounded-lg hover:bg-opacity-80 disabled:text-[var(--text-faint)] flex items-center gap-2 border border-[var(--semantic-green)] disabled:border-[var(--border)] transition-all"
+                className="px-4 py-2 bg-[var(--panel)] text-[var(--semantic-green)] rounded-md hover:bg-[var(--semantic-green)] hover:bg-opacity-10 disabled:text-[var(--text-faint)] disabled:border-[var(--border)] flex items-center gap-2 border border-[var(--semantic-green)] disabled:border-[var(--text-faint)] transition-all font-medium"
               >
                 <Download className="w-4 h-4" />
                 Export CSV
               </button>
               <button
                 onClick={() => setAutoRefresh(!autoRefresh)}
-                className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all border ${
-                  autoRefresh ? 'bg-[var(--panel)] text-[var(--semantic-red)] border-[var(--semantic-red)]' : 'bg-[var(--panel)] text-[var(--text-muted)] border-[var(--border)] hover:border-[var(--accent)]'
+                className={`px-4 py-2 rounded-md flex items-center gap-2 transition-all border font-medium ${
+                  autoRefresh ? 'bg-[var(--semantic-red)] bg-opacity-10 text-[var(--semantic-red)] border-[var(--semantic-red)]' : 'bg-[var(--panel)] text-[var(--text-muted)] border-[var(--border)] hover:border-[var(--accent)]'
                 }`}
               >
                 <Bell className="w-4 h-4" />
@@ -579,7 +579,7 @@ const AltcoinMonitor = () => {
           </div>
 
           {error && (
-            <div className="mb-4 p-4 bg-[var(--panel)] border-l-4 border-[var(--semantic-red)] rounded-lg">
+            <div className="mb-4 p-4 bg-[var(--panel)] border-l-4 border-[var(--semantic-red)] rounded-md">
               <div className="flex items-start gap-2">
                 <AlertCircle className="w-5 h-5 text-[var(--semantic-red)] mt-0.5" />
                 <div className="flex-1">
@@ -596,15 +596,15 @@ const AltcoinMonitor = () => {
           {/* Debug Info */}
           {debugInfo && (
             <details className="mb-4">
-              <summary className="cursor-pointer font-semibold text-[var(--text-muted)] inline-block px-3 py-1 bg-[var(--bg)] rounded-lg border border-[var(--border)] hover:border-[var(--accent)] transition-colors">Debug Info</summary>
-              <pre className="mt-2 p-3 bg-[var(--bg)] rounded-lg text-xs overflow-x-auto text-[var(--text-faint)] border border-[var(--border)]">
+              <summary className="cursor-pointer font-semibold text-[var(--text-muted)] inline-block px-3 py-1 bg-[var(--bg)] rounded-md border border-[var(--border)] hover:border-[var(--accent)] transition-colors">Debug Info</summary>
+              <pre className="mt-2 p-3 bg-[var(--bg)] rounded-md text-xs overflow-x-auto text-[var(--text-faint)] border border-[var(--border)]">
                 {JSON.stringify(debugInfo, null, 2)}
               </pre>
             </details>
           )}
 
           {/* Filters */}
-          <div className="grid grid-cols-5 gap-4 p-4 bg-[var(--bg)] rounded-lg border border-[var(--border)]" ref={filterContainerRef}>
+          <div className="grid grid-cols-5 gap-4 p-4 bg-[var(--bg)] rounded-md border border-[var(--border)]" ref={filterContainerRef}>
             {/* Min Market Cap */}
             <div className="relative">
               <label 
@@ -618,7 +618,7 @@ const AltcoinMonitor = () => {
                 value={filters.minMarketCap}
                 onChange={(e) => setFilters({ ...filters, minMarketCap: parseFloat(e.target.value) || 0 })}
                 onClick={() => toggleHelp('mcapMin')}
-                className="w-full px-3 py-2 border border-[var(--border)] bg-[var(--panel)] text-[var(--text)] rounded-lg text-sm focus:outline-none focus:border-[var(--accent)] cursor-help"
+                className="w-full px-3 py-2 border border-[var(--border)] bg-[var(--panel)] text-[var(--text)] rounded-md text-sm focus:outline-none focus:border-[var(--accent)] cursor-help"
               />
               {openHelp === 'mcapMin' && (
                 <HelpPopover 
@@ -644,7 +644,7 @@ const AltcoinMonitor = () => {
                 value={filters.maxMarketCap}
                 onChange={(e) => setFilters({ ...filters, maxMarketCap: parseFloat(e.target.value) || 0 })}
                 onClick={() => toggleHelp('mcapMax')}
-                className="w-full px-3 py-2 border border-[var(--border)] bg-[var(--panel)] text-[var(--text)] rounded-lg text-sm focus:outline-none focus:border-[var(--accent)] cursor-help"
+                className="w-full px-3 py-2 border border-[var(--border)] bg-[var(--panel)] text-[var(--text)] rounded-md text-sm focus:outline-none focus:border-[var(--accent)] cursor-help"
               />
               {openHelp === 'mcapMax' && (
                 <HelpPopover 
@@ -670,7 +670,7 @@ const AltcoinMonitor = () => {
                 value={filters.minVolume}
                 onChange={(e) => setFilters({ ...filters, minVolume: parseFloat(e.target.value) || 0 })}
                 onClick={() => toggleHelp('volRange')}
-                className="w-full px-3 py-2 border border-[var(--border)] bg-[var(--panel)] text-[var(--text)] rounded-lg text-sm focus:outline-none focus:border-[var(--accent)] cursor-help"
+                className="w-full px-3 py-2 border border-[var(--border)] bg-[var(--panel)] text-[var(--text)] rounded-md text-sm focus:outline-none focus:border-[var(--accent)] cursor-help"
               />
               {openHelp === 'volRange' && (
                 <HelpPopover 
@@ -696,7 +696,7 @@ const AltcoinMonitor = () => {
                 value={filters.minVolumeChange}
                 onChange={(e) => setFilters({ ...filters, minVolumeChange: parseFloat(e.target.value) || 0 })}
                 onClick={() => toggleHelp('volMcap')}
-                className="w-full px-3 py-2 border border-[var(--border)] bg-[var(--panel)] text-[var(--text)] rounded-lg text-sm focus:outline-none focus:border-[var(--accent)] cursor-help"
+                className="w-full px-3 py-2 border border-[var(--border)] bg-[var(--panel)] text-[var(--text)] rounded-md text-sm focus:outline-none focus:border-[var(--accent)] cursor-help"
               />
               {openHelp === 'volMcap' && (
                 <HelpPopover 
@@ -722,7 +722,7 @@ const AltcoinMonitor = () => {
                 value={filters.volumeSpikeThreshold}
                 onChange={(e) => setFilters({ ...filters, volumeSpikeThreshold: parseFloat(e.target.value) || 0 })}
                 onClick={() => toggleHelp('spikeThreshold')}
-                className="w-full px-3 py-2 border border-[var(--border)] bg-[var(--panel)] text-[var(--text)] rounded-lg text-sm focus:outline-none focus:border-[var(--accent)] cursor-help"
+                className="w-full px-3 py-2 border border-[var(--border)] bg-[var(--panel)] text-[var(--text)] rounded-md text-sm focus:outline-none focus:border-[var(--accent)] cursor-help"
               />
               {openHelp === 'spikeThreshold' && (
                 <HelpPopover 
@@ -738,15 +738,15 @@ const AltcoinMonitor = () => {
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-4 mt-4">
-            <div className="bg-[var(--bg)] p-4 rounded-lg border border-[var(--accent)] border-opacity-30">
+            <div className="bg-[var(--bg)] p-4 rounded-md border border-[var(--accent)] border-opacity-30">
               <div className="text-sm text-[var(--text-muted)]">Total Coins Fetched</div>
               <div className="text-2xl font-bold text-[var(--accent)]">{coins.length}</div>
             </div>
-            <div className="bg-[var(--bg)] p-4 rounded-lg border border-[var(--semantic-green)] border-opacity-30">
+            <div className="bg-[var(--bg)] p-4 rounded-md border border-[var(--semantic-green)] border-opacity-30">
               <div className="text-sm text-[var(--text-muted)]">Coins Matching Filters</div>
               <div className="text-2xl font-bold text-[var(--semantic-green)]">{filteredCoins.length}</div>
             </div>
-            <div className="bg-[var(--bg)] p-4 rounded-lg border border-[var(--semantic-red)] border-opacity-30">
+            <div className="bg-[var(--bg)] p-4 rounded-md border border-[var(--semantic-red)] border-opacity-30">
               <div className="text-sm text-[var(--text-muted)]">Volume Spikes Detected</div>
               <div className="text-2xl font-bold text-[var(--semantic-red)]">{volumeSpikes.length}</div>
             </div>
@@ -755,7 +755,7 @@ const AltcoinMonitor = () => {
 
         {/* Volume Spikes Alert */}
         {volumeSpikes.length > 0 && (
-          <div className="bg-[var(--panel)] border-l-4 border-[var(--semantic-red)] p-4 mb-6 rounded-lg">
+          <div className="bg-[var(--panel)] border-l-4 border-[var(--semantic-red)] p-4 mb-6 rounded-md">
             <div className="flex items-start">
               <AlertCircle className="w-5 h-5 text-[var(--semantic-red)] mt-0.5 mr-3" />
               <div className="flex-1">
@@ -775,7 +775,7 @@ const AltcoinMonitor = () => {
 
         {/* Coins Display - Dynamic View */}
         {viewMode === 'table' && (
-          <div className="bg-[var(--panel)] rounded-lg border border-[var(--border)] overflow-hidden">
+          <div className="bg-[var(--panel)] rounded-md border border-[var(--border)] overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-[var(--border)]">
                 <thead className="bg-[var(--bg)] border-b border-[var(--border)]">
@@ -904,7 +904,7 @@ const AltcoinMonitor = () => {
             {sortedCoins.length > 0 ? (
               <CardView coins={sortedCoins} formatNumber={formatNumber} />
             ) : (
-              <div className="bg-[var(--panel)] rounded-lg border border-[var(--border)] p-12 text-center text-[var(--text-muted)]">
+              <div className="bg-[var(--panel)] rounded-md border border-[var(--border)] p-12 text-center text-[var(--text-muted)]">
                 {coins.length === 0 && !loading ? (
                   <>
                     <AlertCircle className="w-12 h-12 mx-auto mb-3 text-[var(--text-faint)]" />
@@ -933,7 +933,7 @@ const AltcoinMonitor = () => {
             {sortedCoins.length > 0 ? (
               <DenseView coins={sortedCoins} formatNumber={formatNumber} onSort={handleSort} sortConfig={sortConfig} />
             ) : (
-              <div className="bg-[var(--panel)] rounded-lg border border-[var(--border)] p-12 text-center text-[var(--text-muted)]">
+              <div className="bg-[var(--panel)] rounded-md border border-[var(--border)] p-12 text-center text-[var(--text-muted)]">
                 {coins.length === 0 && !loading ? (
                   <>
                     <AlertCircle className="w-12 h-12 mx-auto mb-3 text-[var(--text-faint)]" />
