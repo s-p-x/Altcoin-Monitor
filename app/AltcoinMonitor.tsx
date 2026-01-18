@@ -6,8 +6,9 @@ import ViewToggle, { type ViewMode } from './components/ViewToggle';
 import CardView from './components/CardView';
 import DenseView from './components/DenseView';
 import Snapshot from './components/Snapshot';
+import Alerts from './components/Alerts';
 
-type TabType = 'monitor' | 'snapshot';
+type TabType = 'monitor' | 'snapshot' | 'alerts';
 
 const AltcoinMonitor = () => {
   const [coins, setCoins] = useState<any[]>([]);
@@ -54,7 +55,7 @@ const AltcoinMonitor = () => {
     }
     
     const savedTab = localStorage.getItem('activeTab') as TabType | null;
-    if (savedTab && ['monitor', 'snapshot'].includes(savedTab)) {
+    if (savedTab && ['monitor', 'snapshot', 'alerts'].includes(savedTab)) {
       setActiveTab(savedTab);
     }
     
@@ -483,6 +484,17 @@ const AltcoinMonitor = () => {
           >
             <Calendar className="w-4 h-4" />
             Snapshot
+          </button>
+          <button
+            onClick={() => setActiveTab('alerts')}
+            className={`px-4 py-2 rounded-md font-medium transition-all border flex items-center gap-2 ${
+              activeTab === 'alerts'
+                ? 'bg-[var(--accent)] text-white border-[var(--accent)]'
+                : 'bg-[var(--panel)] text-[var(--text-muted)] border-[var(--border)] hover:border-[var(--accent)] hover:text-[var(--text)]'
+            }`}
+          >
+            <Bell className="w-4 h-4" />
+            Alerts
           </button>
         </div>
 
@@ -972,6 +984,22 @@ const AltcoinMonitor = () => {
         {/* Snapshot Tab Content */}
         {activeTab === 'snapshot' && (
           <Snapshot />
+        )}
+
+        {/* Alerts Tab Content */}
+        {activeTab === 'alerts' && (
+          <div className="bg-[var(--panel)] rounded-md border border-[var(--border)] p-6">
+            <div className="mb-4">
+              <h2 className="text-2xl font-bold text-[var(--text)] flex items-center gap-2">
+                <Bell className="w-6 h-6 text-[var(--accent)]" />
+                Volume Spike Alerts
+              </h2>
+              <p className="text-[var(--text-muted)] text-sm mt-1">
+                Scan 50+ coins for volume spikes across multiple timeframes
+              </p>
+            </div>
+            <Alerts />
+          </div>
         )}
       </div>
     </div>
