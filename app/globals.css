@@ -14,7 +14,7 @@
   
   /* Background texture controls */
   --bg-texture-enabled: 1;
-  --bg-texture-opacity: 0.06;
+  --bg-texture-opacity: 0.12;
 }
 
 @theme inline {
@@ -127,14 +127,4 @@ button:not(.no-style) {
   border-radius: 6px;
 }
 
-/* Data table row hover guide */
-tr:hover::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--accent);
-  opacity: 0.4;
-}
+
