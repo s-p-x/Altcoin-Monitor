@@ -32,7 +32,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} font-sans antialiased`}
       >
-        {children}
+        <div className="app-root">
+          <div className="leopard-chrome" aria-hidden="true"></div>
+          <div className="app-stage">
+            {children}
+          </div>
+        </div>
       </body>
     </html>
   );

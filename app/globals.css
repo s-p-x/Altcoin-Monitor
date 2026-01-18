@@ -14,7 +14,7 @@
   
   /* Background texture controls */
   --bg-texture-enabled: 1;
-  --bg-texture-opacity: 0.12;
+  --bg-texture-opacity: 0.06;
 }
 
 @theme inline {
@@ -41,21 +41,45 @@ body {
   position: relative;
 }
 
-/* Background texture layer - only in page margins */
-body::before {
-  content: '';
+/* App root container for background layering */
+.app-root {
+  position: relative;
+  min-height: 100vh;
+  background: #0B0D12;
+}
+
+/* Embossed leopard chrome background layer */
+.leopard-chrome {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: url('/leopard-rosette.svg');
-  background-size: 900px 900px;
-  background-repeat: repeat;
-  background-attachment: fixed;
-  opacity: 0.08;
-  pointer-events: none;
+  inset: 0;
   z-index: 0;
+  pointer-events: none;
+
+  /* Base color */
+  background-color: #0B0D12;
+
+  /* Leopard spots pattern */
+  background-image: url("/leopard-rosette.svg");
+  background-repeat: repeat;
+  background-size: 900px;
+
+  /* Tasteful embossed effect */
+  opacity: var(--bg-texture-opacity);
+  filter: blur(0.6px) contrast(1.15) brightness(0.9);
+  mix-blend-mode: soft-light;
+
+  /* Subtle vignette for depth */
+  -webkit-mask-image: radial-gradient(circle at center, rgba(0,0,0,1) 55%, rgba(0,0,0,0.6) 75%, rgba(0,0,0,0.25) 100%);
+  mask-image: radial-gradient(circle at center, rgba(0,0,0,1) 55%, rgba(0,0,0,0.6) 75%, rgba(0,0,0,0.25) 100%);
+}
+
+/* Main content stage - keeps pattern behind it */
+.app-stage {
+  position: relative;
+  z-index: 1;
+  background: rgba(11, 13, 18, 0.92);
+  backdrop-filter: blur(10px);
+  min-height: 100vh;
 }
 
 /* Ensure content sits above texture and blocks it */
@@ -67,6 +91,11 @@ body::before {
 /* Remove default light backgrounds and shadows */
 * {
   @apply antialiased;
+}
+
+/* Ensure no leopard texture on UI components */
+.panel, .card, table, input, button {
+  background-image: none !important;
 }
 
 /* Remove shadows globally */
