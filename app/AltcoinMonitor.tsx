@@ -7,6 +7,7 @@ import CardView from './components/CardView';
 import DenseView from './components/DenseView';
 import Snapshot from './components/Snapshot';
 import Alerts from './components/Alerts';
+import MonitorAlertSettingsPanel from './components/MonitorAlertSettingsPanel';
 
 type TabType = 'monitor' | 'snapshot' | 'alerts';
 
@@ -762,6 +763,18 @@ const AltcoinMonitor = () => {
               <div className="text-sm text-[var(--text-muted)]">Volume Spikes Detected</div>
               <div className="text-2xl font-bold text-[var(--semantic-red)]">{volumeSpikes.length}</div>
             </div>
+          </div>
+
+          {/* Monitor Alert Settings Panel */}
+          <div className="mt-6">
+            <MonitorAlertSettingsPanel
+              filters={{
+                min_market_cap: filters.minMarketCap,
+                max_market_cap: filters.maxMarketCap,
+                min_volume_24h: filters.minVolume,
+                min_vol_mcap_pct: filters.minVolumeChange,
+              }}
+            />
           </div>
         </div>
 

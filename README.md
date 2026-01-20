@@ -1,36 +1,199 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Altcoin Monitor
 
-## Getting Started
+Real-time cryptocurrency monitoring with intelligent alert system. Track new coins, detect volume spikes, and get instant notifications.
 
-First, run the development server:
+## Features
 
+### ✅ Implemented
+- **Real-time Market Data**: CoinGecko API integration for live market monitoring
+- **Smart Filtering**: Filter coins by market cap, volume, and custom thresholds
+- **Volume Spike Detection**: Real candle data from Binance with spike analysis
+- **Persistent Storage**: SQLite database with Prisma ORM
+- **Alert System**: 
+  - Monitor new coins entering filtered criteria
+  - Volume spike detection rules
+  - Cooldown management to prevent alert fatigue
+- **In-App Notifications**: Real-time alert display in the UI
+- **Telegram Integration**: Send alerts directly to Telegram (when bot is configured)
+- **Development Auth**: Simple header-based authentication for development
+
+### 📊 Data Sources
+- **Market Data**: CoinGecko (free tier supported)
+- **OHLCV Candles**: Binance public API (no auth required)
+- **Notifications**: In-app + Telegram Bot API
+
+## Quick Start
+
+### 1. Install Dependencies
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Configure Environment
+Copy `.env.example` to `.env` and configure:
+```bash
+cp .env.example .env
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Key variables:
+- `DATABASE_URL` - SQLite path (default: `file:./prisma/dev.db`)
+- `TELEGRAM_BOT_TOKEN` - (Optional) Telegram bot token from @BotFather
+- `PUBLIC_BASE_URL` - Base URL for Telegram webhooks (default: `http://localhost:3000`)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 3. Initialize Database
+```bash
+npx prisma migrate dev
+```
 
-## Learn More
+### 4. Run Development Server
+```bash
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Open [http://localhost:3000](http://localhost:3000) to see the app.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Architecture
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Frontend
+- **React 19** with TypeScript
+- **Tailwind CSS** for styling
+- Three view modes: Table, Cards, Dense list
+- Real-time market data polling
+- Three tabs: Monitor, Snapshot, Alerts
 
-## Deploy on Vercel
+### Backend
+- **Next.js 16** with App Router
+- **Prisma 7** with SQLite
+- **REST API** for alerts management
+- Dev auth via `x-user-id` header
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Database Schema
+```
+User
+├── TelegramLink (1:1)
+├── AlertRule (1:many)
+├── AlertEvent (1:many)
+├── MonitorAlertSettings (1:many)
+├── MonitorAlertState (1:many)
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## API Endpoints
+
+### Alert Rules Management
+- `GET /api/alerts/rules` - List rules for current user
+- `POST /api/alerts/rules` - Create new alert rule
+- `PUT /api/alerts/rules` - Update existing rule
+- `DELETE /api/alerts/rules` - Delete rule
+
+### Alert Events
+- `GET /api/alerts/events?limit=50` - Get recent alert events
+
+### Monitor Settings
+- `GET /api/alerts/monitor` - Get current monitor settings
+- `PUT /api/alerts/monitor` - Update monitor settings
+
+### Telegram
+- `POST /api/telegram/link` - Link Telegram chat ID
+- `GET /api/telegram/link` - Get Telegram linking status
+- `POST /api/telegram/webhook/{token}` - Webhook endpoint (receive messages)
+
+### CoinGecko
+- `GET /api/coingecko/markets` - Get filtered coin list
+- `GET /api/coingecko/search` - Search for coins
+- `GET /api/coingecko/market_chart_range` - Get historical price data
+
+## Development
+
+### Authentication
+Currently uses simple header-based dev auth:
+```bash
+curl http://localhost:3000/api/alerts/rules \
+  -H "x-user-id: demo_user"
+```
+
+Falls back to `"demo_user"` if header not provided.
+
+### Testing Alerts
+1. Create an alert rule via UI
+2. System evaluates in-memory (real evaluation requires periodic monitoring)
+3. Events persist to database
+4. Check `/api/alerts/events` for recorded events
+
+### Testing Telegram
+1. Create a Telegram bot with @BotFather
+2. Copy bot token to `.env` as `TELEGRAM_BOT_TOKEN`
+3. Link your chat ID via `POST /api/telegram/link`
+4. Trigger alerts to receive Telegram messages
+
+## Build & Deploy
+
+### Production Build
+```bash
+npm run build
+```
+
+### Run Production Build
+```bash
+npm start
+```
+
+## Environment Variables
+
+| Variable | Default | Required | Description |
+|----------|---------|----------|-------------|
+| `DATABASE_URL` | `file:./prisma/dev.db` | ✓ | SQLite connection string |
+| `TELEGRAM_BOT_TOKEN` | `` | ✗ | Telegram bot token (for alerts) |
+| `PUBLIC_BASE_URL` | `http://localhost:3000` | ✗ | Base URL for webhooks |
+
+## Troubleshooting
+
+### Database Issues
+```bash
+# Reset database
+rm prisma/dev.db
+npx prisma migrate dev
+
+# Generate Prisma client
+npx prisma generate
+```
+
+### Build Errors
+```bash
+# Clear cache and rebuild
+rm -r .next
+npm run build
+```
+
+### Telegram Not Sending
+1. Verify `TELEGRAM_BOT_TOKEN` is set in `.env`
+2. Make sure bot is linked via UI
+3. Check bot is active (@BotFather)
+4. Review console logs for error details
+
+## Known Limitations
+
+1. **No Persistent Evaluator**: Alert rules are stored but not actively evaluated. UI allows creation for testing database layer.
+2. **Development Auth Only**: No JWT/OAuth. Production would need proper auth middleware.
+3. **In-Memory Evaluator State**: Spike detection uses in-memory state. Production needs DB-backed evaluator.
+4. **No Trading Features**: Monitoring and alerts only. No order placement or portfolio tracking.
+5. **CoinGecko Rate Limits**: Free tier is limited. Set API key for higher limits.
+
+## Future Enhancements
+
+- [ ] Background job for continuous alert evaluation
+- [ ] WebSocket for real-time notifications
+- [ ] Multiple user support with proper auth
+- [ ] Email notifications
+- [ ] Slack/Discord integration
+- [ ] Portfolio tracking
+- [ ] Price prediction using ML
+- [ ] Trading signals
+- [ ] Mobile app
+
+## License
+
+MIT
+
+## Support
+
+For issues or questions, open a GitHub issue.

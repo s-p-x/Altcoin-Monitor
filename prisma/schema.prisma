@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  alertRules              AlertRule[]
+  alertEvents             AlertEvent[]
+  monitorAlertSettings    MonitorAlertSettings[]
+  monitorAlertState       MonitorAlertState[]
+  telegramLink            TelegramLink?
+}
+
+model TelegramLink {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chatId    String?  // null until user links their chat
+  enabled   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MonitorAlertSettings {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  filterSignature String   // SHA256 hash of filter values
+  enabled         Boolean  @default(true)
+  cooldownSeconds Int      @default(600) // 10 minutes
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([userId, filterSignature])
+}
+
+model MonitorAlertState {
+  id                   String   @id @default(cuid())
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  filterSignature      String   // SHA256 hash of filter values
+  prevCoinIdsJson      String   @default("[]") // JSON array of coin IDs from previous evaluation
+  lastSignatureSeenAt  DateTime? // When this filter signature was last seen
+  lastUpdatedAt        DateTime @updatedAt
+  createdAt            DateTime @default(now())
+
+  @@unique([userId, filterSignature])
+}
+
+model AlertRule {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  symbol          String   // e.g., "BTC", "ETH"
+  timeframesJson  String   // JSON array: ["1m", "5m", "1h", "4h", "1d"]
+  thresholdsJson  String   // JSON array: [2, 3]
+  baselineN       Int      @default(20)
+  cooldownSeconds Int      @default(300) // 5 minutes
+  enabled         Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  alertEvents AlertEvent[]
+}
+
+model AlertEvent {
+  id                     String   @id @default(cuid())
+  userId                 String
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ruleId                 String?  // null for MONITOR_NEW
+  rule                   AlertRule? @relation(fields: [ruleId], references: [id], onDelete: SetNull)
+  type                   String   // "MONITOR_NEW" or "SPIKE"
+  symbol                 String
+  timeframe              String?  // null for MONITOR_NEW
+  threshold              Int?     // null for MONITOR_NEW
+  ratio                  Float?   // null for MONITOR_NEW
+  currentVol             Float?   // null for MONITOR_NEW
+  baselineVol            Float?   // null for MONITOR_NEW
+  monitorFiltersJson     String?  // JSON with filter values for MONITOR_NEW
+  triggeredAt            DateTime
+  deliveredChannelsJson  String   @default("[]") // JSON array: ["inApp", "telegram"]
+  status                 String   @default("triggered") // "triggered", "delivered", "dismissed"
+  createdAt              DateTime @default(now())
+}
