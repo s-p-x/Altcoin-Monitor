@@ -1,12 +1,16 @@
 /**
  * Telegram Bot Webhook
  * Receives updates from Telegram Bot API
+ * This endpoint is only functional if TELEGRAM_BOT_TOKEN is configured
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { updateTelegramChatId } from "@/lib/dbRepository";
 
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
+// Read token at request time, not at module load time
+function getTelegramBotToken(): string {
+  return process.env.TELEGRAM_BOT_TOKEN || "";
+}
 
 interface TelegramUpdate {
   update_id: number;
@@ -24,6 +28,16 @@ interface TelegramUpdate {
 }
 
 export async function POST(req: NextRequest) {
+  const TELEGRAM_BOT_TOKEN = getTelegramBotToken();
+
+  // If Telegram is not configured, return 403
+  if (!TELEGRAM_BOT_TOKEN) {
+    return NextResponse.json(
+      { error: "Telegram bot not configured" },
+      { status: 403 }
+    );
+  }
+
   try {
     // Verify the webhook token
     const url = new URL(req.url);
@@ -86,17 +100,28 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("Telegram webhook error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
 
 /**
  * Send message to Telegram
+ * Returns false silently if bot token is not configured
  */
 export async function sendTelegramMessage(
   chatId: string,
   text: string
 ): Promise<boolean> {
+  const TELEGRAM_BOT_TOKEN = getTelegramBotToken();
+
+  // If Telegram is not configured, fail silently
+  if (!TELEGRAM_BOT_TOKEN) {
+    return false;
+  }
+
   try {
     const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
 
@@ -124,9 +149,16 @@ export async function sendTelegramMessage(
 
 /**
  * Set up webhook with Telegram
- * Call this once during deployment or setup
+ * Call this once during deployment or setup (if token is configured)
  */
 export async function setupWebhook(baseUrl: string): Promise<boolean> {
+  const TELEGRAM_BOT_TOKEN = getTelegramBotToken();
+
+  if (!TELEGRAM_BOT_TOKEN) {
+    console.warn("Telegram bot token not configured, skipping webhook setup");
+    return false;
+  }
+
   try {
     const webhookUrl = `${baseUrl}/api/telegram/webhook/${TELEGRAM_BOT_TOKEN}`;
     const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook`;
