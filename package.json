@@ -4,14 +4,16 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && prisma migrate deploy && next build",
+    "prebuild": "node scripts/prebuild-check.js",
+    "build": "npm run prebuild && prisma generate && prisma migrate deploy && next build",
     "build:local": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate"
   },
   "comments": {
-    "build": "Production build - REQUIRES valid DATABASE_URL (PostgreSQL). Used by Vercel. Will FAIL locally without Postgres.",
+    "prebuild": "Pre-build validation - checks DATABASE_URL and database connectivity. Prints diagnostics visible in Vercel logs.",
+    "build": "Production build - REQUIRES valid DATABASE_URL (PostgreSQL). Runs prebuild check, then migrations. Used by Vercel.",
     "build:local": "Local development build - Does NOT require database. Use this for local builds when Postgres is not available.",
     "postinstall": "Auto-generates Prisma client after npm install. Runs on both local and Vercel."
   },
