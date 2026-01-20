@@ -1,24 +1,23 @@
 /**
  * Prisma Client Singleton
  * Handles lazy initialization to avoid build-time issues
+ * This ensures PrismaClient is never instantiated during build phase
  */
 
 import { PrismaClient } from "@prisma/client";
 
 let prisma: PrismaClient | null = null;
 
-function createPrismaClient(): PrismaClient {
-  // Prisma v7 with SQLite - connection string is set via DATABASE_URL env var
-  // and read from prisma.config.ts which has the datasource configured
-  return new PrismaClient();
-}
-
+/**
+ * Get or create Prisma client instance
+ * Only called at runtime, never during build
+ */
 export function getPrismaClient(): PrismaClient {
   if (!prisma) {
-    prisma = createPrismaClient();
+    // Only instantiate when actually needed (at runtime)
+    prisma = new PrismaClient();
   }
   return prisma;
 }
 
-// Don't instantiate at module load time
 export default null as any;
