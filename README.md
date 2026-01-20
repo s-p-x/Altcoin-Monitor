@@ -8,47 +8,68 @@ Real-time cryptocurrency monitoring with intelligent alert system. Track new coi
 - **Real-time Market Data**: CoinGecko API integration for live market monitoring
 - **Smart Filtering**: Filter coins by market cap, volume, and custom thresholds
 - **Volume Spike Detection**: Real candle data from Binance with spike analysis
-- **Persistent Storage**: SQLite database with Prisma ORM
+- **Persistent Storage**: PostgreSQL database with Prisma ORM
 - **Alert System**: 
   - Monitor new coins entering filtered criteria
   - Volume spike detection rules
   - Cooldown management to prevent alert fatigue
 - **In-App Notifications**: Real-time alert display in the UI
-- **Telegram Integration**: Send alerts directly to Telegram (when bot is configured)
+- **Telegram Integration**: Send alerts directly to Telegram (optional, graceful degradation)
 - **Development Auth**: Simple header-based authentication for development
 
 ### 📊 Data Sources
 - **Market Data**: CoinGecko (free tier supported)
 - **OHLCV Candles**: Binance public API (no auth required)
-- **Notifications**: In-app + Telegram Bot API
+- **Notifications**: In-app + Telegram Bot API (optional)
 
 ## Quick Start
 
-### 1. Install Dependencies
+### Local Development (No Database Required)
+
+**1. Install Dependencies**
 ```bash
 npm install
 ```
 
-### 2. Configure Environment
-Copy `.env.example` to `.env` and configure:
+**2. Configure Environment (Optional)**
+Copy `.env.example` to `.env` if you want to test with real services:
 ```bash
 cp .env.example .env
 ```
 
-Key variables:
-- `DATABASE_URL` - SQLite path (default: `file:./prisma/dev.db`)
-- `TELEGRAM_BOT_TOKEN` - (Optional) Telegram bot token from @BotFather
-- `PUBLIC_BASE_URL` - Base URL for Telegram webhooks (default: `http://localhost:3000`)
-
-### 3. Initialize Database
+**3. Build for Local Development**
 ```bash
-npx prisma migrate dev
+npm run build:local
 ```
+This skips database migrations and builds the app for local testing.
 
-### 4. Run Development Server
+**4. Run Development Server**
 ```bash
 npm run dev
 ```
+
+> **Note**: Local development does NOT require PostgreSQL. The app will run with minimal setup.
+
+---
+
+### Production Deployment (Vercel)
+
+**1. Set Environment Variables in Vercel**
+- `DATABASE_URL` - PostgreSQL connection string (required)
+- `TELEGRAM_BOT_TOKEN` - Telegram bot token (optional)
+- `PUBLIC_BASE_URL` - Your Vercel deployment URL
+
+**2. Deploy**
+Vercel will automatically run:
+```bash
+npm run build
+```
+This strict build command requires a valid PostgreSQL database and runs migrations automatically:
+```bash
+prisma generate && prisma migrate deploy && next build
+```
+
+> **Important**: `npm run build` will FAIL locally if PostgreSQL is not available. This is intentional. Use `npm run build:local` for local builds.
 
 Open [http://localhost:3000](http://localhost:3000) to see the app.
 
