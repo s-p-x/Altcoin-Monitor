@@ -13,6 +13,7 @@ type TabType = 'monitor' | 'snapshot' | 'alerts';
 
 const AltcoinMonitor = () => {
   const [coins, setCoins] = useState<any[]>([]);
+  const [universeCoins, setUniverseCoins] = useState<any[]>([]);
   const [filteredCoins, setFilteredCoins] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -40,6 +41,7 @@ const AltcoinMonitor = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('table');
   const [activeTab, setActiveTab] = useState<TabType>('monitor');
   const [openHelp, setOpenHelp] = useState<null | 'mcapMin' | 'mcapMax' | 'volRange' | 'volMcap' | 'spikeThreshold'>(null);
+  const [universeStats, setUniverseStats] = useState<any>(null);
   const filterContainerRef = useRef<HTMLDivElement>(null);
 
   const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
@@ -141,7 +143,18 @@ const AltcoinMonitor = () => {
           return acc;
         }, {});
         
-        console.log(`🔄 Attempt ${attempt + 1}/${MAX_RETRIES}: Fetching from proxy...`);
+        console.log(`🔄 Attempt ${attempt + 1}/${MAX_RETRIES}: Fetching universe and markets...`);
+        
+        // Fetch universe coins (expanded universe: top 500 + exchange + user-added)
+        const universeResponse = await fetch('/api/coins/universe?stats=true');
+        if (!universeResponse.ok) {
+          console.warn('Failed to fetch universe, falling back to markets');
+        } else {
+          const universeData = await universeResponse.json();
+          setUniverseCoins(universeData.coins || []);
+          setUniverseStats(universeData.stats);
+          console.log(`📊 Universe loaded: ${universeData.coins?.length} coins`);
+        }
         
         // Fetch from proxy instead of directly from CoinGecko
         const response = await fetch('/api/coingecko/markets');
@@ -956,7 +969,7 @@ const AltcoinMonitor = () => {
         {viewMode === 'dense' && (
           <div>
             {sortedCoins.length > 0 ? (
-              <DenseView coins={sortedCoins} formatNumber={formatNumber} onSort={handleSort} sortConfig={sortConfig} />
+              <DenseView coins={sortedCoins} formatNumber={formatNumber} onSort={handleSort} sortConfig={sortConfig} universeStats={universeStats} />
             ) : (
               <div className="bg-[var(--panel)] rounded-md border border-[var(--border)] p-12 text-center text-[var(--text-muted)]">
                 {coins.length === 0 && !loading ? (

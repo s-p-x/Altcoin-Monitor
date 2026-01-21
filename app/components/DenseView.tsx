@@ -1,16 +1,61 @@
 'use client';
 
-import React from 'react';
-import { TrendingUp, TrendingDown, ChevronUp } from 'lucide-react';
+import React, { useState, useMemo, useCallback } from 'react';
+import { TrendingUp, TrendingDown, ChevronUp, X } from 'lucide-react';
 
 interface DenseViewProps {
   coins: any[];
   formatNumber: (num: number) => string;
   onSort: (key: string) => void;
   sortConfig: { key: string; direction: 'asc' | 'desc' };
+  universeStats?: { total: number; filtered: number };
 }
 
-const DenseView: React.FC<DenseViewProps> = ({ coins, formatNumber, onSort, sortConfig }) => {
+const DenseView: React.FC<DenseViewProps> = ({ 
+  coins, 
+  formatNumber, 
+  onSort, 
+  sortConfig,
+  universeStats
+}) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Debounced search filtering
+  const filteredCoins = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return coins;
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+    
+    return coins.filter(coin => {
+      const symbol = (coin.symbol || coin.baseSymbol || '').toLowerCase();
+      const name = (coin.name || '').toLowerCase();
+      
+      // Match symbol prefix or substring, name substring
+      return (
+        symbol.startsWith(query) || 
+        symbol.includes(query) || 
+        name.includes(query)
+      );
+    });
+  }, [coins, searchQuery]);
+
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  }, []);
+
+  const handleClearSearch = useCallback(() => {
+    setSearchQuery('');
+  }, []);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Escape') {
+      handleClearSearch();
+    }
+  }, [handleClearSearch]);
+
   const SortIcon = ({ columnKey }: { columnKey: string }) => {
     if (sortConfig.key !== columnKey) return <span className="text-[var(--text-faint)] text-xs">⇅</span>;
     return <span className="text-[var(--accent)] text-xs">{sortConfig.direction === 'desc' ? '↓' : '↑'}</span>;
@@ -18,6 +63,42 @@ const DenseView: React.FC<DenseViewProps> = ({ coins, formatNumber, onSort, sort
 
   return (
     <div className="bg-[var(--panel)] rounded-lg border border-[var(--border)] overflow-hidden">
+      {/* Search Bar */}
+      <div className="p-4 border-b border-[var(--border)] bg-[var(--bg)]">
+        <div className="flex items-center gap-2">
+          <div className="flex-1 relative">
+            <input
+              type="text"
+              placeholder="Search symbol or name…"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              onKeyDown={handleKeyDown}
+              onFocus={() => setIsSearching(true)}
+              onBlur={() => setIsSearching(false)}
+              className="w-full px-3 py-2 rounded border border-[var(--border)] bg-[var(--panel)] text-[var(--text)] text-sm placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
+            />
+            {searchQuery && (
+              <button
+                onClick={handleClearSearch}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
+                title="Clear search (Esc)"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+          <div className="text-xs text-[var(--text-muted)] whitespace-nowrap">
+            {filteredCoins.length} / {coins.length}
+            {universeStats && process.env.NODE_ENV === 'development' && (
+              <div className="text-xs text-[var(--text-faint)] mt-1">
+                Universe: {universeStats.total}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Table */}
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-[var(--border)]">
           <thead className="bg-[var(--bg)] border-b border-[var(--border)]">
@@ -71,7 +152,7 @@ const DenseView: React.FC<DenseViewProps> = ({ coins, formatNumber, onSort, sort
             </tr>
           </thead>
           <tbody className="divide-y divide-[var(--border)]">
-            {coins.map((coin) => (
+            {filteredCoins.map((coin) => (
               <tr key={coin.id} className="hover:bg-[var(--bg)] hover:border-l-2 hover:border-[var(--accent)] transition-all relative">
                 <td className="px-4 py-2 whitespace-nowrap text-xs text-[var(--text-faint)] tabular-nums">
                   #{coin.rank}

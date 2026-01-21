@@ -18,6 +18,7 @@ model User {
   alertEvents             AlertEvent[]
   monitorAlertSettings    MonitorAlertSettings[]
   monitorAlertState       MonitorAlertState[]
+  userAddedSymbols        UserAddedSymbol[]
   telegramLink            TelegramLink?
 }
 
@@ -91,4 +92,16 @@ model AlertEvent {
   deliveredChannelsJson  String   @default("[]") // JSON array: ["inApp", "telegram"]
   status                 String   @default("triggered") // "triggered", "delivered", "dismissed"
   createdAt              DateTime @default(now())
+}
+
+model UserAddedSymbol {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  symbol    String   // e.g., "MYTOKEN"
+  name      String?  // Optional custom name
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, symbol])
 }
