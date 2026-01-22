@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { TrendingUp, RefreshCw, Download, Bell, Filter, AlertCircle, CheckCircle, Key, Clock, Calendar, ChevronUp } from 'lucide-react';
 import ViewToggle, { type ViewMode } from './components/ViewToggle';
 import CardView from './components/CardView';
@@ -42,6 +42,8 @@ const AltcoinMonitor = () => {
   const [activeTab, setActiveTab] = useState<TabType>('monitor');
   const [openHelp, setOpenHelp] = useState<null | 'mcapMin' | 'mcapMax' | 'volRange' | 'volMcap' | 'spikeThreshold'>(null);
   const [universeStats, setUniverseStats] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const filterContainerRef = useRef<HTMLDivElement>(null);
 
   const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
@@ -72,6 +74,12 @@ const AltcoinMonitor = () => {
   useEffect(() => {
     localStorage.setItem('activeTab', activeTab);
   }, [activeTab]);
+
+  // Debounce search input for responsiveness
+  useEffect(() => {
+    const handle = setTimeout(() => setDebouncedQuery(searchQuery), 200);
+    return () => clearTimeout(handle);
+  }, [searchQuery]);
 
   // Close popover when clicking outside
   useEffect(() => {
@@ -320,6 +328,18 @@ const AltcoinMonitor = () => {
     setFilteredCoins(filtered);
   }, [coins, filters]);
 
+  // Apply search over filtered results (UI-only)
+  const searchedCoins = useMemo(() => {
+    const query = debouncedQuery.trim().toLowerCase();
+    if (!query) return filteredCoins;
+
+    return filteredCoins.filter((coin) => {
+      const symbol = (coin.symbol || '').toLowerCase();
+      const name = (coin.name || '').toLowerCase();
+      return symbol.includes(query) || name.includes(query);
+    });
+  }, [filteredCoins, debouncedQuery]);
+
   // Auto-refresh with cache awareness
   useEffect(() => {
     let interval: NodeJS.Timeout | undefined;
@@ -336,7 +356,7 @@ const AltcoinMonitor = () => {
   }, [autoRefresh, fetchCoins, cacheExpiry]);
 
   // Sort coins
-  const sortedCoins = [...filteredCoins].sort((a, b) => {
+  const sortedCoins = [...searchedCoins].sort((a, b) => {
     const aVal = a[sortConfig.key] || 0;
     const bVal = b[sortConfig.key] || 0;
     return sortConfig.direction === 'desc' ? (aVal < bVal ? 1 : -1) : (aVal > bVal ? 1 : -1);
@@ -810,6 +830,37 @@ const AltcoinMonitor = () => {
             </div>
           </div>
         )}
+
+        {/* Search (UI-only, client-side) */}
+        <div className="bg-[var(--panel)] border border-[var(--border)] rounded-md p-4 mb-4 flex items-center gap-3">
+          <div className="flex-1 max-w-lg relative">
+            <input
+              type="text"
+              placeholder="Search symbol or name…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') setSearchQuery('');
+              }}
+              className="w-full px-3 py-2 rounded border border-[var(--border)] bg-[var(--bg)] text-[var(--text)] text-sm placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
+                title="Clear search (Esc)"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            )}
+          </div>
+          <div className="text-xs text-[var(--text-muted)] whitespace-nowrap">
+            {searchedCoins.length} / {filteredCoins.length}
+          </div>
+        </div>
 
         {/* Coins Display - Dynamic View */}
         {viewMode === 'table' && (

@@ -22,8 +22,8 @@ interface Coin {
   source: "coingecko" | "exchange" | "user";
 }
 
-// Server-side cache (2 minutes)
-const universeCache = new NodeCache({ stdTTL: 120, checkperiod: 60 });
+// Server-side cache (2 minutes, within 60-180s requirement)
+const universeCache = new NodeCache({ stdTTL: 150, checkperiod: 60 });
 
 // Common exchange symbols that are tracked in the app
 const COMMON_EXCHANGE_SYMBOLS = [
@@ -95,31 +95,44 @@ function deduplicateCoins(coins: Coin[]): Coin[] {
  * Fetch top N coins from CoinGecko
  */
 async function fetchCoinGeckoTopCoins(limit: number = 500): Promise<Coin[]> {
+  const perPage = 250; // CoinGecko maximum
+  const pages = Math.max(1, Math.ceil(limit / perPage));
+
   try {
-    const response = await fetch(
-      `https://api.coingecko.com/api/v3/markets?vs_currency=usd&order=market_cap_desc&per_page=${Math.min(limit, 250)}&page=1&sparkline=false`,
-      { next: { revalidate: 300 } } // cache for 5 minutes at fetch level
+    const pageFetches = Array.from({ length: pages }, (_, idx) => idx + 1).map(
+      async (page) => {
+        const response = await fetch(
+          `https://api.coingecko.com/api/v3/markets?vs_currency=usd&order=market_cap_desc&per_page=${perPage}&page=${page}&sparkline=false`,
+          { next: { revalidate: 300 } } // cache for 5 minutes at fetch level
+        );
+
+        if (!response.ok) {
+          console.warn(`Failed to fetch CoinGecko page ${page}`);
+          return [] as Coin[];
+        }
+
+        const data = await response.json();
+
+        return data.map((coin: any) =>
+          normalizeCoin(
+            {
+              id: coin.id,
+              symbol: coin.symbol,
+              name: coin.name,
+              marketCap: coin.market_cap,
+              volume24h: coin.total_volume,
+            },
+            "coingecko"
+          )
+        );
+      }
     );
 
-    if (!response.ok) {
-      console.warn("Failed to fetch CoinGecko top coins");
-      return [];
-    }
+    const pagesData = await Promise.all(pageFetches);
+    const flattened = pagesData.flat();
 
-    const data = await response.json();
-
-    return data.map((coin: any) =>
-      normalizeCoin(
-        {
-          id: coin.id,
-          symbol: coin.symbol,
-          name: coin.name,
-          marketCap: coin.market_cap,
-          volume24h: coin.total_volume,
-        },
-        "coingecko"
-      )
-    );
+    // In case limit is not a multiple of perPage, trim extra
+    return flattened.slice(0, limit);
   } catch (error) {
     console.error("Error fetching CoinGecko top coins:", error);
     return [];

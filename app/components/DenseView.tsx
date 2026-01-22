@@ -87,11 +87,13 @@ const DenseView: React.FC<DenseViewProps> = ({
               </button>
             )}
           </div>
-          <div className="text-xs text-[var(--text-muted)] whitespace-nowrap">
+          <div className="text-xs text-[var(--text-muted)] whitespace-nowrap text-right">
             {filteredCoins.length} / {coins.length}
-            {universeStats && process.env.NODE_ENV === 'development' && (
-              <div className="text-xs text-[var(--text-faint)] mt-1">
-                Universe: {universeStats.total}
+            {process.env.NODE_ENV === 'development' && (
+              <div className="text-xs text-[var(--text-faint)] mt-1 leading-tight">
+                Universe: {universeStats?.total ?? coins.length}
+                <br />
+                Filtered: {filteredCoins.length}
               </div>
             )}
           </div>
