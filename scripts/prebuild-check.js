@@ -30,14 +30,17 @@ if (!databaseUrl) {
 console.log('✅ DATABASE_URL: PRESENT');
 
 // 3. Validate DATABASE_URL format (without printing it)
-if (!databaseUrl.startsWith('postgresql://') && !databaseUrl.startsWith('postgres://')) {
+const allowedPrefixes = ['postgresql://', 'postgres://', 'prisma+postgres://'];
+const hasAllowedPrefix = allowedPrefixes.some((p) => databaseUrl.startsWith(p));
+
+if (!hasAllowedPrefix) {
   console.error('❌ DATABASE_URL format appears invalid');
-  console.error('Expected: postgresql:// or postgres:// prefix');
+  console.error('Expected prefix: postgresql:// or postgres:// (or prisma+postgres:// for Prisma Accelerate)');
   console.error('Got: ' + databaseUrl.split('://')[0] + '://...');
   process.exit(1);
 }
 
-console.log('✅ DATABASE_URL format: Valid (PostgreSQL)');
+console.log('✅ DATABASE_URL format: Valid (PostgreSQL / Prisma Accelerate)');
 
 // 4. Test database connection (optional but highly recommended)
 console.log('\n--- Database Connection Test ---');
