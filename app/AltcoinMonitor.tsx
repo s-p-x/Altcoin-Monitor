@@ -45,7 +45,7 @@ const AltcoinMonitor = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(100); // UI display page size
+  const [pageSize, setPageSize] = useState(250); // UI display page size (matches upstream page by default)
   const filterContainerRef = useRef<HTMLDivElement>(null);
 
   const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
@@ -222,15 +222,17 @@ const AltcoinMonitor = () => {
         }
         
         const result = await response.json();
-        console.log('✓ Received coins:', result.length);
+        const coinsPayload = Array.isArray(result) ? result : result.coins;
+        const meta = result.meta;
+        console.log('✓ Received coins:', coinsPayload?.length, meta ? `(pages=${meta.pageCount}, perPage=${meta.perPage}, total=${meta.totalFetched})` : '');
         
-        if (!Array.isArray(result) || result.length === 0) {
+        if (!Array.isArray(coinsPayload) || coinsPayload.length === 0) {
           throw new Error('Invalid API response format');
         }
 
         // Process and normalize data from CoinGecko
         const newSpikes: any[] = [];
-        const processedData = result.map((coin: any) => {
+        const processedData = coinsPayload.map((coin: any) => {
           const volume = coin.total_volume || 0;
           const marketCap = coin.market_cap || 0;
           const volumeToMcapRatio = marketCap > 0 ? (volume / marketCap) * 100 : 0;
