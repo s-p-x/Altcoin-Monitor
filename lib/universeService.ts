@@ -94,13 +94,19 @@ function deduplicateCoins(coins: Coin[]): Coin[] {
 /**
  * Fetch top N coins from CoinGecko
  */
-async function fetchCoinGeckoTopCoins(limit: number = 500): Promise<Coin[]> {
-  const perPage = 250; // CoinGecko maximum
-  const pages = Math.max(1, Math.ceil(limit / perPage));
+async function fetchCoinGeckoTopCoins(limit: number = 500, perPage: number = 250, pageCount?: number): Promise<Coin[]> {
+  // perPage capped at 250 due to API limits
+  perPage = Math.min(perPage || 250, 250);
+  const pages = pageCount ? Math.max(1, pageCount) : Math.max(1, Math.ceil(limit / perPage));
 
   try {
-    const pageFetches = Array.from({ length: pages }, (_, idx) => idx + 1).map(
-      async (page) => {
+    // Limit concurrency to 2 to be gentle to API
+    const pageNumbers = Array.from({ length: pages }, (_, idx) => idx + 1);
+    const results: Coin[] = [];
+
+    for (let i = 0; i < pageNumbers.length; i += 2) {
+      const batch = pageNumbers.slice(i, i + 2);
+      const batchResults = await Promise.all(batch.map(async (page) => {
         const response = await fetch(
           `https://api.coingecko.com/api/v3/markets?vs_currency=usd&order=market_cap_desc&per_page=${perPage}&page=${page}&sparkline=false`,
           { next: { revalidate: 300 } } // cache for 5 minutes at fetch level
@@ -125,11 +131,11 @@ async function fetchCoinGeckoTopCoins(limit: number = 500): Promise<Coin[]> {
             "coingecko"
           )
         );
-      }
-    );
+      }));
+      for (const arr of batchResults) results.push(...arr);
+    }
 
-    const pagesData = await Promise.all(pageFetches);
-    const flattened = pagesData.flat();
+    const flattened = results;
 
     // In case limit is not a multiple of perPage, trim extra
     return flattened.slice(0, limit);
@@ -187,18 +193,25 @@ async function fetchUserAddedSymbols(userId: string): Promise<Coin[]> {
  * Get merged, deduplicated universe of coins
  * Cached server-side for 2 minutes
  */
-export async function getUniverseCoins(userId: string): Promise<Coin[]> {
-  const cacheKey = `universe:${userId}`;
+type UniverseOptions = {
+  perPage?: number;
+  pageCount?: number;
+};
+
+export async function getUniverse(userId: string, opts: UniverseOptions = {}): Promise<{ coins: Coin[]; meta: { totalFetched: number; pageCount: number; perPage: number } }> {
+  const perPage = Math.min(Math.max(opts.perPage ?? 250, 50), 250);
+  const pageCount = Math.min(Math.max(opts.pageCount ?? 2, 1), 4);
+  const cacheKey = `universe:${userId}:p${perPage}:c${pageCount}:${process.env.COINGECKO_API_KEY ? 'key' : 'nokey'}`;
 
   // Check cache first
-  const cached = universeCache.get<Coin[]>(cacheKey);
+  const cached = universeCache.get<{ coins: Coin[]; meta: { totalFetched: number; pageCount: number; perPage: number } }>(cacheKey);
   if (cached) {
     return cached;
   }
 
   // Fetch from all sources in parallel
   const [coingeckoCoins, exchangeCoins, userCoins] = await Promise.all([
-    fetchCoinGeckoTopCoins(500),
+    fetchCoinGeckoTopCoins(perPage * pageCount, perPage, pageCount),
     Promise.resolve(getExchangeSymbolCoins()),
     fetchUserAddedSymbols(userId),
   ]);
@@ -219,10 +232,18 @@ export async function getUniverseCoins(userId: string): Promise<Coin[]> {
     return a.name.localeCompare(b.name);
   });
 
-  // Cache for 2 minutes
-  universeCache.set(cacheKey, sorted);
+  const meta = { totalFetched: sorted.length, pageCount, perPage };
 
-  return sorted;
+  // Cache for ~150 seconds
+  const payload = { coins: sorted, meta };
+  universeCache.set(cacheKey, payload);
+
+  return payload;
+}
+
+export async function getUniverseCoins(userId: string, opts: UniverseOptions = {}): Promise<Coin[]> {
+  const { coins } = await getUniverse(userId, opts);
+  return coins;
 }
 
 /**

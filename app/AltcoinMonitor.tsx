@@ -44,6 +44,8 @@ const AltcoinMonitor = () => {
   const [universeStats, setUniverseStats] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(100); // UI display page size
   const filterContainerRef = useRef<HTMLDivElement>(null);
 
   const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
@@ -153,14 +155,15 @@ const AltcoinMonitor = () => {
         
         console.log(`🔄 Attempt ${attempt + 1}/${MAX_RETRIES}: Fetching universe and markets...`);
         
-        // Fetch universe coins (expanded universe: top 500 + exchange + user-added)
-        const universeResponse = await fetch('/api/coins/universe?stats=true');
+        // Fetch universe coins (multi-page merged; backend defaults perPage=250&pageCount=2)
+        const universeResponse = await fetch('/api/coins/universe?stats=true&perPage=250&pageCount=2');
         if (!universeResponse.ok) {
           console.warn('Failed to fetch universe, falling back to markets');
         } else {
           const universeData = await universeResponse.json();
           setUniverseCoins(universeData.coins || []);
           setUniverseStats(universeData.stats);
+          setCurrentPage(1);
           console.log(`📊 Universe loaded: ${universeData.coins?.length} coins`);
         }
         
@@ -361,6 +364,11 @@ const AltcoinMonitor = () => {
     const bVal = b[sortConfig.key] || 0;
     return sortConfig.direction === 'desc' ? (aVal < bVal ? 1 : -1) : (aVal > bVal ? 1 : -1);
   });
+
+  // Client-side pagination (no refetch; applies after search and filters)
+  const totalPages = Math.max(1, Math.ceil(sortedCoins.length / pageSize));
+  const clampedPage = Math.min(Math.max(currentPage, 1), totalPages);
+  const displayCoins = sortedCoins.slice((clampedPage - 1) * pageSize, clampedPage * pageSize);
 
   const handleSort = (key: string) => {
     setSortConfig(prev => ({
@@ -862,6 +870,43 @@ const AltcoinMonitor = () => {
           </div>
         </div>
 
+        {/* Page switcher (below search bar) */}
+        <div className="bg-[var(--panel)] border border-[var(--border)] rounded-md p-3 mb-4 flex items-center gap-3">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={clampedPage <= 1}
+            className="px-3 py-1 bg-[var(--panel)] text-[var(--text-muted)] rounded-md hover:text-[var(--text)] hover:border-[var(--accent)] border border-[var(--border)] text-sm transition-all disabled:opacity-50"
+          >
+            Prev
+          </button>
+          <div className="text-sm text-[var(--text-muted)]">
+            Page <span className="font-semibold text-[var(--text)]">{clampedPage}</span> of <span className="font-semibold text-[var(--text)]">{totalPages}</span>
+          </div>
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={clampedPage >= totalPages}
+            className="px-3 py-1 bg-[var(--panel)] text-[var(--text-muted)] rounded-md hover:text-[var(--text)] hover:border-[var(--accent)] border border-[var(--border)] text-sm transition-all disabled:opacity-50"
+          >
+            Next
+          </button>
+          <div className="ml-auto flex items-center gap-2">
+            <label className="text-xs text-[var(--text-muted)]">Page size</label>
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                const size = parseInt(e.target.value, 10) || 100;
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
+              className="px-2 py-1 border border-[var(--border)] bg-[var(--bg)] text-[var(--text)] rounded text-xs"
+            >
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+              <option value={250}>250</option>
+            </select>
+          </div>
+        </div>
+
         {/* Coins Display - Dynamic View */}
         {viewMode === 'table' && (
           <div className="bg-[var(--panel)] rounded-md border border-[var(--border)] overflow-hidden">
@@ -918,7 +963,7 @@ const AltcoinMonitor = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--border)]">
-                  {sortedCoins.map((coin) => (
+                  {displayCoins.map((coin) => (
                     <tr key={coin.id} className="hover:bg-[var(--bg)] transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-faint)]">
                         #{coin.rank}
@@ -991,7 +1036,7 @@ const AltcoinMonitor = () => {
         {viewMode === 'cards' && (
           <div>
             {sortedCoins.length > 0 ? (
-              <CardView coins={sortedCoins} formatNumber={formatNumber} />
+              <CardView coins={displayCoins} formatNumber={formatNumber} />
             ) : (
               <div className="bg-[var(--panel)] rounded-md border border-[var(--border)] p-12 text-center text-[var(--text-muted)]">
                 {coins.length === 0 && !loading ? (
@@ -1020,7 +1065,7 @@ const AltcoinMonitor = () => {
         {viewMode === 'dense' && (
           <div>
             {sortedCoins.length > 0 ? (
-              <DenseView coins={sortedCoins} formatNumber={formatNumber} onSort={handleSort} sortConfig={sortConfig} universeStats={universeStats} />
+              <DenseView coins={displayCoins} formatNumber={formatNumber} onSort={handleSort} sortConfig={sortConfig} universeStats={universeStats} />
             ) : (
               <div className="bg-[var(--panel)] rounded-md border border-[var(--border)] p-12 text-center text-[var(--text-muted)]">
                 {coins.length === 0 && !loading ? (

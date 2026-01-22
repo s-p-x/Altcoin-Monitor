@@ -9,7 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getUniverseCoins, getUniverseStats } from "@/lib/universeService";
+import { getUniverse, getUniverseStats } from "@/lib/universeService";
 
 export async function GET(req: NextRequest) {
   try {
@@ -28,8 +28,14 @@ export async function GET(req: NextRequest) {
     const isDev = process.env.NODE_ENV === "development";
     const includeStats = req.nextUrl.searchParams.get("stats") === "true";
 
-    // Get universe coins
-    const coins = await getUniverseCoins(userId);
+    // Params for multi-page fetch
+    const perPageParam = req.nextUrl.searchParams.get("perPage");
+    const pageCountParam = req.nextUrl.searchParams.get("pageCount");
+    const perPage = perPageParam ? Math.min(Math.max(parseInt(perPageParam, 10) || 250, 50), 250) : undefined;
+    const pageCount = pageCountParam ? Math.min(Math.max(parseInt(pageCountParam, 10) || 2, 1), 4) : undefined;
+
+    // Get universe coins with meta
+    const { coins, meta } = await getUniverse(userId, { perPage, pageCount });
 
     // Optional: include stats in dev mode
     let stats = null;
@@ -39,6 +45,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       coins,
+      meta,
       stats,
       timestamp: new Date().toISOString(),
     });
