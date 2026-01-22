@@ -8,8 +8,9 @@ import DenseView from './components/DenseView';
 import Snapshot from './components/Snapshot';
 import Alerts from './components/Alerts';
 import MonitorAlertSettingsPanel from './components/MonitorAlertSettingsPanel';
+import ExplainTab from './components/ExplainTab';
 
-type TabType = 'monitor' | 'snapshot' | 'alerts';
+type TabType = 'monitor' | 'snapshot' | 'alerts' | 'explain';
 
 const AltcoinMonitor = () => {
   const [coins, setCoins] = useState<any[]>([]);
@@ -62,7 +63,7 @@ const AltcoinMonitor = () => {
     }
     
     const savedTab = localStorage.getItem('activeTab') as TabType | null;
-    if (savedTab && ['monitor', 'snapshot', 'alerts'].includes(savedTab)) {
+    if (savedTab && ['monitor', 'snapshot', 'alerts', 'explain'].includes(savedTab)) {
       setActiveTab(savedTab);
     }
     
@@ -539,6 +540,17 @@ const AltcoinMonitor = () => {
           >
             <Bell className="w-4 h-4" />
             Alerts
+          </button>
+          <button
+            onClick={() => setActiveTab('explain')}
+            className={`px-4 py-2 rounded-md font-medium transition-all border flex items-center gap-2 ${
+              activeTab === 'explain'
+                ? 'bg-[var(--accent)] text-white border-[var(--accent)]'
+                : 'bg-[var(--panel)] text-[var(--text-muted)] border-[var(--border)] hover:border-[var(--accent)] hover:text-[var(--text)]'
+            }`}
+          >
+            <span className="text-lg">✨</span>
+            Explain
           </button>
         </div>
 
@@ -1124,6 +1136,11 @@ const AltcoinMonitor = () => {
             </div>
             <Alerts />
           </div>
+        )}
+
+        {/* Explain Tab Content */}
+        {activeTab === 'explain' && (
+          <ExplainTab universeCoins={universeCoins} />
         )}
       </div>
     </div>

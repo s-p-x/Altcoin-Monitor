@@ -75,3 +75,31 @@ export interface FilterSignatureInput {
   min_volume_24h: number;
   min_vol_mcap_pct: number;
 }
+
+/**
+ * Coin Explainer Types
+ */
+export interface ExplainMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface MatchedCoin {
+  id: string;
+  symbol: string;
+  name: string;
+  market_cap?: number;
+  total_volume?: number;
+  current_price?: number;
+  coingecko_url?: string;
+}
+
+export interface ExplainRequest {
+  query: string;
+  matchedCoin: MatchedCoin | null;
+  messages?: ExplainMessage[];
+}
+
+export interface ExplainResponse {
+  response: string;
+}

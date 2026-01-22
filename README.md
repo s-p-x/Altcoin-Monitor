@@ -15,6 +15,10 @@ Real-time cryptocurrency monitoring with intelligent alert system. Track new coi
   - Cooldown management to prevent alert fatigue
 - **In-App Notifications**: Real-time alert display in the UI
 - **Telegram Integration**: Send alerts directly to Telegram (optional, graceful degradation)
+- **AI Coin Explainer**: Structured, consistent coin evaluations powered by OpenAI
+  - 7-section analysis format (Scoreboard, Pros/Cons, etc.)
+  - Ticker resolution against loaded universe
+  - No-hype, honest assessments
 - **Development Auth**: Simple header-based authentication for development
 
 ### 📊 Data Sources
@@ -58,6 +62,11 @@ npm run dev
 - `DATABASE_URL` - PostgreSQL connection string (required)
 - `TELEGRAM_BOT_TOKEN` - Telegram bot token (optional)
 - `PUBLIC_BASE_URL` - Your Vercel deployment URL
+- `OPENAI_API_KEY` - OpenAI API key for Explain tab (optional)
+- `COIN_EXPLAINER_SYSTEM_PROMPT` - System prompt for AI evaluations (optional)
+- `COIN_EXPLAINER_MODEL` - OpenAI model to use (optional, defaults to gpt-4o-mini)
+
+See [VERCEL_EXPLAIN_SETUP.md](VERCEL_EXPLAIN_SETUP.md) for detailed Explain tab setup.
 
 **2. Deploy**
 Vercel will automatically run:
@@ -80,7 +89,7 @@ Open [http://localhost:3000](http://localhost:3000) to see the app.
 - **Tailwind CSS** for styling
 - Three view modes: Table, Cards, Dense list
 - Real-time market data polling
-- Three tabs: Monitor, Snapshot, Alerts
+- Four tabs: Monitor, Snapshot, Alerts, Explain
 
 ### Backend
 - **Next.js 16** with App Router
@@ -191,6 +200,12 @@ npm run build
 3. Check bot is active (@BotFather)
 4. Review console logs for error details
 
+### Explain Tab Issues
+1. Verify `OPENAI_API_KEY` is set in `.env` or Vercel env vars
+2. Check `COIN_EXPLAINER_SYSTEM_PROMPT` is configured
+3. Ensure OpenAI account has available credits
+4. See [VERCEL_EXPLAIN_SETUP.md](VERCEL_EXPLAIN_SETUP.md) for troubleshooting
+
 ## Known Limitations
 
 1. **No Persistent Evaluator**: Alert rules are stored but not actively evaluated. UI allows creation for testing database layer.
@@ -210,6 +225,15 @@ npm run build
 - [ ] Price prediction using ML
 - [ ] Trading signals
 - [ ] Mobile app
+- [ ] Explain tab: conversation memory, export history, compare coins
+
+## Documentation
+
+- [EXPLAIN_FEATURE.md](EXPLAIN_FEATURE.md) - AI Coin Explainer feature details
+- [VERCEL_EXPLAIN_SETUP.md](VERCEL_EXPLAIN_SETUP.md) - Vercel deployment guide for Explain tab
+- [ALERT_SYSTEM.md](ALERT_SYSTEM.md) - Alert system architecture
+- [ALERT_QUICKSTART.md](ALERT_QUICKSTART.md) - Quick start guide for alerts
+- [API_REFERENCE.md](API_REFERENCE.md) - API endpoints reference
 
 ## License
 
