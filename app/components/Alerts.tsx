@@ -11,6 +11,8 @@ import {
   ChevronDown,
   CheckCircle,
   X,
+  BarChart3,
+  Sparkles,
 } from "lucide-react";
 import { AlertRule, AlertEvent } from "@/lib/types";
 
@@ -211,35 +213,52 @@ export default function Alerts() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Tab Navigation */}
-      <div className="flex gap-2 border-b border-[var(--border)]">
-        <button
-          onClick={() => setActiveTab("rules")}
-          className={`px-4 py-2 font-medium border-b-2 transition-colors ${
-            activeTab === "rules"
-              ? "text-[var(--accent)] border-b-[var(--accent)]"
-              : "text-[var(--text-muted)] border-b-transparent hover:text-[var(--text)]"
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <Plus className="w-4 h-4" />
-            Rules
+    <div className="max-w-[672px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-40 bg-[var(--panel)]/30 backdrop-blur-md border-b border-[var(--border)]/50 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex items-start gap-4">
+          <div className="p-2 bg-[var(--accent)]/20 rounded-lg">
+            <Zap className="w-6 h-6 text-[var(--accent)]" />
           </div>
-        </button>
-        <button
-          onClick={() => setActiveTab("events")}
-          className={`px-4 py-2 font-medium border-b-2 transition-colors ${
-            activeTab === "events"
-              ? "text-[var(--accent)] border-b-[var(--accent)]"
-              : "text-[var(--text-muted)] border-b-transparent hover:text-[var(--text)]"
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4" />
-            Events
+          <div className="flex-1">
+            <h1 className="text-3xl font-semibold text-[var(--text)] -tracking-[0.5px] leading-tight">
+              Volume Spike Alerts
+            </h1>
+            <p className="text-sm text-[var(--text-muted)] mt-1">
+              Monitor 50+ coins for volume spikes across multiple timeframes
+            </p>
           </div>
-        </button>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="flex gap-6 border-b border-[var(--border)]/50 mt-6 -mb-px">
+          <button
+            onClick={() => setActiveTab("rules")}
+            className={`px-1 py-3 font-medium text-sm border-b-2 transition-all duration-200 ${
+              activeTab === "rules"
+                ? "text-[var(--accent)] border-b-[var(--accent)]"
+                : "text-[var(--text-muted)] border-b-transparent hover:text-[var(--text)]"
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4" />
+              Rules
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab("events")}
+            className={`px-1 py-3 font-medium text-sm border-b-2 transition-all duration-200 ${
+              activeTab === "events"
+                ? "text-[var(--accent)] border-b-[var(--accent)]"
+                : "text-[var(--text-muted)] border-b-transparent hover:text-[var(--text)]"
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4" />
+              Events
+            </div>
+          </button>
+        </div>
       </div>
 
       {/* Rules Tab */}
@@ -249,50 +268,67 @@ export default function Alerts() {
           {!showCreateForm ? (
             <button
               onClick={() => setShowCreateForm(true)}
-              className="w-full px-4 py-3 bg-[var(--accent)] bg-opacity-10 text-[var(--accent)] border border-[var(--accent)] border-opacity-30 rounded-md hover:bg-opacity-20 transition-colors font-medium flex items-center justify-center gap-2"
+              className="w-full px-6 py-3 bg-[var(--accent)] text-white rounded-lg shadow-lg hover:bg-[var(--accent)]/90 hover:shadow-xl hover:shadow-[var(--accent)]/30 active:scale-[0.98] transition-all duration-200 font-semibold text-sm flex items-center justify-center gap-2 h-11"
             >
               <Plus className="w-5 h-5" />
               Create New Rule
             </button>
           ) : (
-            <div className="p-4 bg-[var(--panel)] border border-[var(--border)] rounded-md">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-[var(--text)]">
-                  Create Volume Spike Alert Rule
-                </h3>
+            <div className="p-6 bg-[var(--panel)]/50 backdrop-blur-sm border border-[var(--border)]/50 rounded-xl shadow-lg hover:bg-[var(--panel)]/70 hover:border-[var(--accent)]/30 transition-all duration-300">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="font-semibold text-[var(--text)] text-base">
+                    Create Volume Spike Alert Rule
+                  </h3>
+                  <p className="text-sm text-[var(--text-muted)] mt-1">
+                    Set up custom alerts for volume spikes
+                  </p>
+                </div>
                 <button
                   onClick={() => setShowCreateForm(false)}
-                  className="text-[var(--text-muted)] hover:text-[var(--text)]"
+                  className="p-2 text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 rounded-lg transition-all duration-200"
+                  aria-label="Close alert creation form"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <form onSubmit={handleCreateRule} className="space-y-4">
+              <form onSubmit={handleCreateRule} className="space-y-6">
                 {/* Symbol Input */}
                 <div>
-                  <label className="block text-sm font-medium text-[var(--text-muted)] mb-1">
+                  <label className="block text-sm font-medium text-[var(--text)] mb-2">
                     Coin Symbol
                   </label>
-                  <input
-                    type="text"
-                    value={formData.symbol}
-                    onChange={(e) =>
-                      setFormData({ ...formData, symbol: e.target.value })
-                    }
-                    placeholder="e.g., BTC, ETH, SOL"
-                    className="w-full px-3 py-2 border border-[var(--border)] bg-[var(--bg)] text-[var(--text)] rounded-md text-sm focus:outline-none focus:border-[var(--accent)]"
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={formData.symbol}
+                      onChange={(e) =>
+                        setFormData({ ...formData, symbol: e.target.value.toUpperCase() })
+                      }
+                      placeholder="e.g., BTC, ETH, SOL"
+                      className="w-full px-4 py-2.5 pr-16 border border-[var(--border)]/50 bg-[var(--bg)]/50 text-[var(--text)] rounded-lg text-sm placeholder:text-[var(--text-faint)] focus:outline-none focus:border-[var(--accent)]/50 focus:bg-[var(--bg)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all duration-200"
+                    />
+                    {formData.symbol && (
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[var(--accent)]/20 text-[var(--accent)] rounded-md text-xs font-semibold">
+                        {formData.symbol}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Timeframes */}
                 <div>
-                  <label className="block text-sm font-medium text-[var(--text-muted)] mb-2">
+                  <label className="block text-sm font-medium text-[var(--text)] mb-2">
                     Timeframes
                   </label>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {TIMEFRAMES.map((tf) => (
-                      <label key={tf} className="flex items-center gap-2">
+                      <label 
+                        key={tf} 
+                        className="flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer hover:bg-[var(--accent)]/10 transition-all duration-200"
+                        aria-label={`Select timeframe ${tf}`}
+                      >
                         <input
                           type="checkbox"
                           checked={formData.timeframes.includes(tf)}
@@ -311,9 +347,9 @@ export default function Alerts() {
                               });
                             }
                           }}
-                          className="w-4 h-4 rounded"
+                          className="w-5 h-5 rounded border border-[var(--border)]/50 cursor-pointer checked:bg-[var(--accent)] checked:border-[var(--accent)] transition-all duration-200"
                         />
-                        <span className="text-sm text-[var(--text)]">{tf}</span>
+                        <span className="text-sm font-medium text-[var(--text)]">{tf}</span>
                       </label>
                     ))}
                   </div>
@@ -321,12 +357,16 @@ export default function Alerts() {
 
                 {/* Thresholds */}
                 <div>
-                  <label className="block text-sm font-medium text-[var(--text-muted)] mb-2">
-                    Thresholds (2x, 3x)
+                  <label className="block text-sm font-medium text-[var(--text)] mb-2">
+                    Volume Thresholds
                   </label>
                   <div className="flex gap-3">
                     {[2, 3].map((mult) => (
-                      <label key={mult} className="flex items-center gap-2">
+                      <label 
+                        key={mult} 
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer hover:bg-[var(--accent)]/10 transition-all duration-200"
+                        aria-label={`Select volume threshold ${mult}x`}
+                      >
                         <input
                           type="checkbox"
                           checked={formData.thresholds.includes(mult)}
@@ -348,9 +388,9 @@ export default function Alerts() {
                               });
                             }
                           }}
-                          className="w-4 h-4 rounded"
+                          className="w-5 h-5 rounded border border-[var(--border)]/50 cursor-pointer checked:bg-[var(--accent)] checked:border-[var(--accent)] transition-all duration-200"
                         />
-                        <span className="text-sm text-[var(--text)]">
+                        <span className="text-sm font-medium text-[var(--text)]">
                           {mult}×
                         </span>
                       </label>
@@ -358,14 +398,15 @@ export default function Alerts() {
                   </div>
                 </div>
 
-                {/* Baseline N - Collapsible */}
+                {/* Advanced Options - Collapsible */}
                 <details className="group">
-                  <summary className="cursor-pointer font-medium text-sm text-[var(--text-muted)] group-open:text-[var(--text)]">
+                  <summary className="cursor-pointer font-medium text-sm text-[var(--accent)] hover:text-[var(--accent)]/80 transition-colors duration-200 flex items-center gap-2 list-none" aria-label="Toggle advanced options">
+                    <ChevronDown className="w-4 h-4 transition-transform duration-300 group-open:rotate-180" />
                     Advanced Options
                   </summary>
-                  <div className="mt-3 space-y-3 p-3 bg-[var(--bg)] rounded-md border border-[var(--border)]">
+                  <div className="mt-4 space-y-4 p-6 bg-[var(--panel)]/50 rounded-xl border border-[var(--border)]/50 animate-[expand_300ms_ease]">
                     <div>
-                      <label className="block text-sm font-medium text-[var(--text-muted)] mb-1">
+                      <label className="block text-sm font-medium text-[var(--text)] mb-2">
                         Baseline Window (candles)
                       </label>
                       <input
@@ -378,16 +419,16 @@ export default function Alerts() {
                           })
                         }
                         min={1}
-                        className="w-full px-3 py-2 border border-[var(--border)] bg-[var(--panel)] text-[var(--text)] rounded-md text-sm"
+                        className="w-full px-4 py-2.5 border border-[var(--border)]/50 bg-[var(--bg)]/50 text-[var(--text)] rounded-lg text-sm focus:outline-none focus:border-[var(--accent)]/50 focus:bg-[var(--bg)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all duration-200"
                       />
-                      <p className="text-xs text-[var(--text-faint)] mt-1">
+                      <p className="text-xs text-[var(--text-faint)] mt-2">
                         Rolling average of last N candles
                       </p>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-[var(--text-muted)] mb-1">
-                        Cooldown (seconds)
+                      <label className="block text-sm font-medium text-[var(--text)] mb-2">
+                        Cooldown Period
                       </label>
                       <select
                         value={formData.cooldown_seconds}
@@ -397,7 +438,7 @@ export default function Alerts() {
                             cooldown_seconds: parseInt(e.target.value),
                           })
                         }
-                        className="w-full px-3 py-2 border border-[var(--border)] bg-[var(--panel)] text-[var(--text)] rounded-md text-sm"
+                        className="w-full px-4 py-2.5 border border-[var(--border)]/50 bg-[var(--bg)]/50 text-[var(--text)] rounded-lg text-sm focus:outline-none focus:border-[var(--accent)]/50 focus:bg-[var(--bg)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all duration-200"
                       >
                         <option value={60}>1 minute</option>
                         <option value={300}>5 minutes</option>
@@ -410,18 +451,19 @@ export default function Alerts() {
                 </details>
 
                 {/* Buttons */}
-                <div className="flex gap-2 pt-2">
+                <div className="flex gap-3 pt-4">
                   <button
                     type="submit"
                     disabled={formLoading}
-                    className="flex-1 px-4 py-2 bg-[var(--accent)] text-white rounded-md hover:bg-opacity-90 disabled:opacity-50 transition-colors font-medium"
+                    className="flex-1 px-6 py-3 h-11 bg-[var(--accent)] text-white rounded-lg shadow-lg hover:bg-[var(--accent)]/90 hover:shadow-xl hover:shadow-[var(--accent)]/30 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-semibold text-sm"
+                    aria-label="Create alert rule"
                   >
                     {formLoading ? "Creating..." : "Create Rule"}
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowCreateForm(false)}
-                    className="px-4 py-2 bg-[var(--panel)] text-[var(--text-muted)] border border-[var(--border)] rounded-md hover:text-[var(--text)] transition-colors"
+                    className="px-6 py-3 h-11 bg-transparent text-[var(--text)] border border-[var(--border)]/50 rounded-lg hover:bg-[var(--accent)]/10 hover:border-[var(--accent)]/30 transition-all duration-200 font-medium text-sm"
                   >
                     Cancel
                   </button>
@@ -441,36 +483,36 @@ export default function Alerts() {
               <p className="text-[var(--text-muted)]">No rules created yet</p>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-3">
               {rules.map((rule) => (
                 <div
                   key={rule.id}
-                  className="p-4 bg-[var(--panel)] border border-[var(--border)] rounded-md flex items-start justify-between"
+                  className="p-5 bg-[var(--panel)]/50 backdrop-blur-sm border border-[var(--border)]/50 rounded-xl shadow-lg hover:bg-[var(--panel)]/70 hover:border-[var(--accent)]/30 transition-all duration-300 flex items-start justify-between group"
                 >
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-3 mb-3">
                       <input
                         type="checkbox"
                         checked={rule.enabled}
                         onChange={() => handleToggleRule(rule)}
-                        className="w-4 h-4 rounded cursor-pointer"
+                        className="w-5 h-5 rounded border border-[var(--border)]/50 cursor-pointer checked:bg-[var(--accent)] checked:border-[var(--accent)] transition-all duration-200"
                       />
                       <h4 className="font-semibold text-[var(--text)] text-lg">
                         {rule.symbol}
                       </h4>
                       {rule.enabled && (
-                        <span className="px-2 py-1 text-xs bg-[var(--accent)] bg-opacity-20 text-[var(--accent)] rounded-full">
+                        <span className="px-3 py-1 text-xs bg-[var(--accent)]/20 text-[var(--accent)] rounded-full font-medium">
                           Active
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-[var(--text-muted)]">
+                    <p className="text-sm text-[var(--text-muted)] leading-relaxed">
                       Timeframes:{" "}
                       <span className="font-mono text-[var(--accent)]">
                         {rule.timeframes.join(", ")}
                       </span>
                     </p>
-                    <p className="text-sm text-[var(--text-muted)]">
+                    <p className="text-sm text-[var(--text-muted)] leading-relaxed">
                       Thresholds:{" "}
                       <span className="font-mono text-[var(--accent)]">
                         {rule.thresholds.map((t) => `${t}x`).join(", ")}
@@ -483,7 +525,7 @@ export default function Alerts() {
                   </div>
                   <button
                     onClick={() => handleDeleteRule(rule.id)}
-                    className="ml-2 p-2 text-[var(--text-faint)] hover:text-[var(--semantic-red)] hover:bg-[var(--semantic-red)] hover:bg-opacity-10 rounded-md transition-colors"
+                    className="ml-3 p-2.5 text-[var(--text-faint)] hover:text-[var(--semantic-red)] hover:bg-[var(--semantic-red)] hover:bg-opacity-10 rounded-lg transition-all duration-200"
                     title="Delete rule"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -510,15 +552,15 @@ export default function Alerts() {
               </p>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-3">
               {events.map((event) => (
                 <div
                   key={event.id}
-                  className="p-4 bg-[var(--panel)] border border-l-4 border-l-[var(--accent)] border-[var(--border)] rounded-md"
+                  className="p-5 bg-[var(--panel)]/50 backdrop-blur-sm border-l-4 border-l-[var(--accent)] border border-[var(--border)]/50 rounded-xl shadow-lg hover:bg-[var(--panel)]/70 hover:border-[var(--accent)]/30 transition-all duration-300"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-3 mb-3">
                         {event.type === "SPIKE" ? (
                           <TrendingUp className="w-5 h-5 text-[var(--accent)]" />
                         ) : (
@@ -527,7 +569,7 @@ export default function Alerts() {
                         <h4 className="font-semibold text-[var(--text)] text-lg">
                           {event.symbol}
                         </h4>
-                        <span className="px-2 py-1 text-xs bg-[var(--accent)] bg-opacity-20 text-[var(--accent)] rounded-full">
+                        <span className="px-3 py-1 text-xs bg-[var(--accent)]/20 text-[var(--accent)] rounded-full font-medium">
                           {event.type === "SPIKE" ? "Spike" : "New Coin"}
                         </span>
                       </div>

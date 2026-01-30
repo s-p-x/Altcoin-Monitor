@@ -1,14 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  /* Dark trading theme */
-  --bg: #0B0D12;
-  --panel: #11131A;
-  --border: #1A1D26;
-  --text: #E6E8EE;
-  --text-muted: #9AA1B2;
-  --text-faint: #6B7280;
-  --accent: #8B8CF8;
+  /* Leopard Design System - Dark Theme */
+  --bg: oklch(0.12 0.01 280);
+  --panel: oklch(0.18 0.01 280);
+  --border: oklch(0.25 0.01 280);
+  --text: oklch(0.92 0.01 280);
+  --text-muted: oklch(0.7 0.02 280);
+  --text-faint: oklch(0.55 0.02 280);
+  --accent: #A855F7;
+  --accent-light: #D8B4FE;
+  --accent-dark: #7E22CE;
   --semantic-green: #10B981;
   --semantic-red: #EF4444;
   
@@ -20,15 +22,15 @@
 @theme inline {
   --color-background: var(--bg);
   --color-foreground: var(--text);
-  --font-sans: var(--font-inter);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-ibm-plex-sans), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-ibm-plex-mono), monospace;
 }
 
 html, body {
   margin: 0;
   padding: 0;
   color: var(--text);
-  font-family: var(--font-inter, system-ui, -apple-system, sans-serif);
+  font-family: var(--font-ibm-plex-sans), system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
 }
 
