@@ -1,43 +1,39 @@
 /**
  * Telegram Account Linking Endpoint
- * Links a Telegram chat ID to the user account
+ * Generates a link code for secure Telegram pairing
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { updateTelegramChatId } from "@/lib/dbRepository";
+import { generateTelegramLinkCode, getTelegramLink } from "@/lib/dbRepository";
 
+/**
+ * POST /api/telegram/link
+ * Generate a new link code for the authenticated user
+ */
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { chatId } = body;
     const userId = req.headers.get("x-user-id") || "demo_user";
 
-    if (!chatId) {
-      return NextResponse.json(
-        { error: "chatId is required" },
-        { status: 400 }
-      );
-    }
+    // Generate a 6-digit code that expires in 10 minutes
+    const code = Math.random().toString().substring(2, 8).padStart(6, '0');
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    // Link the chat ID to the user
-    const result = await updateTelegramChatId(userId, chatId.toString(), true);
+    const link = await generateTelegramLinkCode(userId, code, expiresAt);
 
     return NextResponse.json(
       {
         success: true,
-        message: "Telegram account linked successfully",
-        telegramLink: {
-          userId: result.userId,
-          chatId: result.chatId,
-          enabled: result.enabled,
-        },
+        code,
+        expiresAt: expiresAt.toISOString(),
+        expiresInSeconds: 600,
+        instructions: "Send '/link " + code + "' to the bot in Telegram",
       },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Failed to link Telegram:", error);
+    console.error("Failed to generate link code:", error);
     return NextResponse.json(
-      { error: "Failed to link Telegram account" },
+      { error: "Failed to generate link code" },
       { status: 500 }
     );
   }

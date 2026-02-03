@@ -13,6 +13,8 @@ Real-time cryptocurrency monitoring with intelligent alert system. Track new coi
   - Monitor new coins entering filtered criteria
   - Volume spike detection rules
   - Cooldown management to prevent alert fatigue
+  - **🆕 Automated Evaluation**: Vercel Cron triggers spike alerts every 1 minute (production)
+  - **🆕 Local Worker**: Dev script for testing background evaluation (10s interval)
 - **In-App Notifications**: Real-time alert display in the UI
 - **Telegram Integration**: Send alerts directly to Telegram (optional, graceful degradation)
 - **AI Coin Explainer**: Structured, consistent coin evaluations powered by OpenAI
@@ -52,6 +54,17 @@ This skips database migrations and builds the app for local testing.
 npm run dev
 ```
 
+**5. (Optional) Run Alert Evaluation Worker**
+
+For automated alert evaluation in local development:
+
+```bash
+# In a separate terminal
+node scripts/alert-worker.js
+```
+
+This will evaluate spike alerts every 10 seconds. See [ALERT_SCHEDULER_QUICK_REF.md](ALERT_SCHEDULER_QUICK_REF.md) for details.
+
 > **Note**: Local development does NOT require PostgreSQL. The app will run with minimal setup.
 
 ---
@@ -60,6 +73,7 @@ npm run dev
 
 **1. Set Environment Variables in Vercel**
 - `DATABASE_URL` - PostgreSQL connection string (required)
+- `ALERT_EVAL_SECRET` - Secret for automated alert evaluation (recommended)
 - `TELEGRAM_BOT_TOKEN` - Telegram bot token (optional)
 - `PUBLIC_BASE_URL` - Your Vercel deployment URL
 - `OPENAI_API_KEY` - OpenAI API key for Explain tab (optional)

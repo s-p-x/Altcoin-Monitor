@@ -113,7 +113,7 @@ export async function evaluateMonitorAlerts(
       // Create alert event
       await createAlertEvent(event);
 
-      // Send in-app notification
+      // Send notifications (in-app + Telegram)
       const notifPayload: NotificationPayload = {
         type: "MONITOR_NEW",
         symbol: coinInfo.symbol,
@@ -121,6 +121,7 @@ export async function evaluateMonitorAlerts(
         triggeredAt: event.triggered_at,
       };
 
+      // Send in-app notification
       try {
         const sent = await notificationProvider.send(
           userId,
@@ -132,7 +133,24 @@ export async function evaluateMonitorAlerts(
         }
       } catch (err) {
         console.error(
-          `Failed to send in-app notification for ${coinInfo.symbol}:`,
+          `[Alert ${event.id}] Failed to send in-app notification for ${coinInfo.symbol} (user: ${userId}):`,
+          err
+        );
+      }
+
+      // Send Telegram notification (non-blocking, best effort)
+      try {
+        const sent = await notificationProvider.send(
+          userId,
+          "telegram",
+          notifPayload
+        );
+        if (sent) {
+          event.delivered_channels.push("telegram");
+        }
+      } catch (err) {
+        console.error(
+          `[Alert ${event.id}] Failed to send Telegram notification for ${coinInfo.symbol} (user: ${userId}):`,
           err
         );
       }
@@ -262,7 +280,7 @@ export async function evaluateSpikeAlerts(userId: string): Promise<number> {
               // Create alert event
               await createAlertEvent(event);
 
-              // Send in-app notification
+              // Send notifications (in-app + Telegram)
               const notifPayload: NotificationPayload = {
                 type: "SPIKE",
                 symbol: rule.symbol,
@@ -275,6 +293,7 @@ export async function evaluateSpikeAlerts(userId: string): Promise<number> {
                 ruleId: rule.id,
               };
 
+              // Send in-app notification
               try {
                 const sent = await notificationProvider.send(
                   userId,
@@ -286,7 +305,24 @@ export async function evaluateSpikeAlerts(userId: string): Promise<number> {
                 }
               } catch (err) {
                 console.error(
-                  `Failed to send spike notification for ${rule.symbol}:`,
+                  `[Alert ${event.id}] Failed to send in-app notification for ${rule.symbol} (user: ${userId}):`,
+                  err
+                );
+              }
+
+              // Send Telegram notification (non-blocking, best effort)
+              try {
+                const sent = await notificationProvider.send(
+                  userId,
+                  "telegram",
+                  notifPayload
+                );
+                if (sent) {
+                  event.delivered_channels.push("telegram");
+                }
+              } catch (err) {
+                console.error(
+                  `[Alert ${event.id}] Failed to send Telegram notification for ${rule.symbol} (user: ${userId}):`,
                   err
                 );
               }

@@ -350,6 +350,71 @@ export async function getOrCreateTelegramLink(userId: string) {
   return link;
 }
 
+export async function generateTelegramLinkCode(
+  userId: string,
+  code: string,
+  expiresAt: Date
+) {
+  await ensureUser(userId);
+  const prisma = getPrismaClient();
+
+  const link = await prisma.telegramLink.upsert({
+    where: { userId },
+    update: {
+      linkCode: code,
+      linkCodeExpiresAt: expiresAt,
+    },
+    create: {
+      userId,
+      linkCode: code,
+      linkCodeExpiresAt: expiresAt,
+    },
+  });
+
+  return link;
+}
+
+export async function verifyAndLinkTelegramCode(
+  code: string,
+  chatId: string
+): Promise<{ success: boolean; error?: string; userId?: string }> {
+  const prisma = getPrismaClient();
+
+  try {
+    // Find link with matching code
+    const link = await prisma.telegramLink.findFirst({
+      where: {
+        linkCode: code,
+      },
+    });
+
+    if (!link) {
+      return { success: false, error: "Invalid code" };
+    }
+
+    // Check if code is expired
+    if (!link.linkCodeExpiresAt || link.linkCodeExpiresAt < new Date()) {
+      return { success: false, error: "Code has expired" };
+    }
+
+    // Link the chat ID and clear the code
+    await prisma.telegramLink.update({
+      where: { userId: link.userId },
+      data: {
+        chatId,
+        enabled: true,
+        linkCode: null,
+        linkCodeExpiresAt: null,
+      },
+    });
+
+    return { success: true, userId: link.userId };
+  } catch (error) {
+    console.error("Error verifying Telegram link code:", error);
+    return { success: false, error: "Internal error" };
+  }
+}
+
 export async function updateTelegramChatId(userId: string, chatId: string, enabled: boolean = true) {
   const prisma = getPrismaClient();
   const link = await prisma.telegramLink.update({
@@ -406,4 +471,15 @@ export function checkSpikeRuleCooldown(
   }
 
   return false;
+}
+
+/**
+ * Get all users (for background alert evaluation)
+ */
+export async function getAllUsers(): Promise<string[]> {
+  const prisma = getPrismaClient();
+  const users = await prisma.user.findMany({
+    select: { id: true },
+  });
+  return users.map((u) => u.id);
 }
