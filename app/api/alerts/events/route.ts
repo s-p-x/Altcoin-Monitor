@@ -1,6 +1,10 @@
 import { NextResponse, NextRequest } from "next/server";
 import { getUserAlertEvents } from "@/lib/dbRepository";
 
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Failed to fetch events";
+}
+
 /**
  * Get user ID from request (dev auth)
  */
@@ -19,10 +23,10 @@ export async function GET(request: NextRequest) {
 
     const events = await getUserAlertEvents(userId, Math.min(limit, 500));
     return NextResponse.json({ events });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[GET /api/alerts/events] Error:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to fetch events" },
+      { error: getErrorMessage(error) },
       { status: 500 }
     );
   }

@@ -67,18 +67,22 @@ export async function fetchCandles(
       throw new Error(`Binance API error: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data: unknown = await response.json();
+    const rows = Array.isArray(data) ? data : [];
 
     // Parse Binance klines format
     // [open time, open, high, low, close, volume, close time, quote asset volume, trades, taker buy base, taker buy quote, ignore]
-    const candles: Candle[] = data.map((kline: any[]) => ({
-      timestamp: kline[0],
-      open: parseFloat(kline[1]),
-      high: parseFloat(kline[2]),
-      low: parseFloat(kline[3]),
-      close: parseFloat(kline[4]),
-      volume: parseFloat(kline[7]), // Use quote asset volume for volume in USDT
-    }));
+    const candles: Candle[] = rows
+      .filter(Array.isArray)
+      .map((kline) => ({
+        timestamp: typeof kline[0] === "number" ? kline[0] : Number(kline[0]),
+        open: Number(kline[1]),
+        high: Number(kline[2]),
+        low: Number(kline[3]),
+        close: Number(kline[4]),
+        volume: Number(kline[7]), // Use quote asset volume for volume in USDT
+      }))
+      .filter((candle) => Number.isFinite(candle.timestamp));
 
     // Cache the result
     cache.set(cacheKey, candles);
@@ -173,8 +177,23 @@ export async function symbolExists(symbol: string): Promise<boolean> {
       return false;
     }
 
-    const data = await response.json();
-    return data.symbols.some((s: any) => s.symbol === normalizedSymbol && s.status === "TRADING");
+    const data: unknown = await response.json();
+    if (!data || typeof data !== "object" || !("symbols" in data)) {
+      return false;
+    }
+    const symbols = (data as { symbols?: unknown }).symbols;
+    if (!Array.isArray(symbols)) {
+      return false;
+    }
+    return symbols.some((s) => {
+      if (!s || typeof s !== "object") return false;
+      const symbolValue = (s as { symbol?: unknown }).symbol;
+      const statusValue = (s as { status?: unknown }).status;
+      return (
+        symbolValue === normalizedSymbol &&
+        statusValue === "TRADING"
+      );
+    });
   } catch (error) {
     console.error("Failed to check symbol existence:", error);
     return false;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   AlertCircle,
   Clock,
@@ -16,51 +16,8 @@ import {
 } from "lucide-react";
 import { AlertRule, AlertEvent } from "@/lib/types";
 
-interface AlertResult {
-  pair: string;
-  symbol: string;
-  timeframe: string;
-  ratio: number;
-  closedVolume: number;
-  baselineVolume: number;
-  closedCandleTime: number;
-}
-
 const TIMEFRAMES = ["1m", "5m", "15m", "1h", "4h", "1d"];
-const MULTIPLIERS = [2, 3];
-const MAX_COINS_OPTIONS = [25, 50, 100];
 const DEFAULT_USER_ID = "demo_user"; // TODO: Replace with actual auth
-
-// Demo data for development
-const DEMO_ALERTS: AlertResult[] = [
-  {
-    pair: "SOL/USDT",
-    symbol: "SOL",
-    timeframe: "1h",
-    ratio: 3.2,
-    closedVolume: 12500000,
-    baselineVolume: 3900000,
-    closedCandleTime: Date.now() - 300000,
-  },
-  {
-    pair: "PEPE/USDT",
-    symbol: "PEPE",
-    timeframe: "1h",
-    ratio: 2.8,
-    closedVolume: 5800000,
-    baselineVolume: 2100000,
-    closedCandleTime: Date.now() - 600000,
-  },
-  {
-    pair: "ARB/USDT",
-    symbol: "ARB",
-    timeframe: "1h",
-    ratio: 2.4,
-    closedVolume: 4200000,
-    baselineVolume: 1750000,
-    closedCandleTime: Date.now() - 900000,
-  },
-];
 
 export default function Alerts() {
   const [activeTab, setActiveTab] = useState<"rules" | "events">("rules");
@@ -83,8 +40,6 @@ export default function Alerts() {
   // Alert Events state
   const [events, setEvents] = useState<AlertEvent[]>([]);
   const [eventsLoading, setEventsLoading] = useState(false);
-  const [eventsPollInterval, setEventsPollInterval] = useState<NodeJS.Timeout | null>(null);
-
   // Fetch rules
   const fetchRules = async () => {
     setRulesLoading(true);
@@ -94,7 +49,7 @@ export default function Alerts() {
       if (!res.ok) throw new Error("Failed to fetch rules");
       const data = await res.json();
       setRules(data.rules || []);
-    } catch (err: any) {
+    } catch (err) {
       console.error("Failed to fetch rules:", err);
     } finally {
       setRulesLoading(false);
@@ -113,7 +68,7 @@ export default function Alerts() {
       if (!res.ok) throw new Error("Failed to fetch events");
       const data = await res.json();
       setEvents(data.events || []);
-    } catch (err: any) {
+    } catch (err) {
       console.error("Failed to fetch events:", err);
     } finally {
       setEventsLoading(false);
@@ -127,7 +82,6 @@ export default function Alerts() {
 
     // Poll for new events every 5 seconds
     const interval = setInterval(fetchEvents, 5000);
-    setEventsPollInterval(interval);
 
     return () => {
       if (interval) clearInterval(interval);
@@ -169,9 +123,9 @@ export default function Alerts() {
       });
       setShowCreateForm(false);
       await fetchRules();
-    } catch (err: any) {
+    } catch (err) {
       console.error("Failed to create rule:", err);
-      alert("Failed to create rule: " + err.message);
+      alert("Failed to create rule");
     } finally {
       setFormLoading(false);
     }
@@ -188,9 +142,9 @@ export default function Alerts() {
 
       if (!res.ok) throw new Error("Failed to delete rule");
       await fetchRules();
-    } catch (err: any) {
+    } catch (err) {
       console.error("Failed to delete rule:", err);
-      alert("Failed to delete rule: " + err.message);
+      alert("Failed to delete rule");
     }
   };
 
@@ -207,7 +161,7 @@ export default function Alerts() {
 
       if (!res.ok) throw new Error("Failed to update rule");
       await fetchRules();
-    } catch (err: any) {
+    } catch (err) {
       console.error("Failed to toggle rule:", err);
     }
   };

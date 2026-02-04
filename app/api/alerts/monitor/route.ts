@@ -6,6 +6,16 @@ import {
 } from "@/lib/dbRepository";
 import { FilterSignatureInput } from "@/lib/types";
 
+type MonitorUpdateRequest = {
+  filters: FilterSignatureInput;
+  enabled?: boolean;
+  cooldown_seconds?: number;
+};
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Request failed";
+}
+
 /**
  * Get user ID from request (dev auth)
  */
@@ -44,10 +54,10 @@ export async function GET(request: NextRequest) {
       filterSignature: filterSig,
       filters,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[GET /api/alerts/monitor] Error:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to fetch monitor settings" },
+      { error: getErrorMessage(error) },
       { status: 500 }
     );
   }
@@ -60,7 +70,7 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const userId = getUserId(request);
-    const body = await request.json();
+    const body = (await request.json()) as MonitorUpdateRequest;
     const { filters, enabled, cooldown_seconds } = body;
 
     if (!filters) {
@@ -75,13 +85,13 @@ export async function PUT(request: NextRequest) {
     const updated = await updateMonitorAlertSettings(userId, filterSig, {
       enabled: enabled !== undefined ? enabled : true,
       cooldown_seconds: cooldown_seconds || 600,
-    } as any);
+    });
 
     return NextResponse.json({ settings: updated });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[PUT /api/alerts/monitor] Error:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to update monitor settings" },
+      { error: getErrorMessage(error) },
       { status: 500 }
     );
   }

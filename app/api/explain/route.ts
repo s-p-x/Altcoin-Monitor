@@ -28,6 +28,10 @@ interface Message {
   content: string;
 }
 
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Internal server error";
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { query, matchedCoin, messages } = await req.json();
@@ -157,10 +161,10 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ response: assistantResponse });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Explain API error:', error);
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      { error: getErrorMessage(error) },
       { status: 500 }
     );
   }

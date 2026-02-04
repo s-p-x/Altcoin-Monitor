@@ -10,7 +10,6 @@ import { MonitorAlertSettings, FilterSignatureInput } from "@/lib/types";
 interface MonitorAlertSettingsPanelProps {
   filters: FilterSignatureInput;
   onSettingsChange?: (settings: Partial<MonitorAlertSettings>) => void;
-  loading?: boolean;
 }
 
 const COOLDOWN_OPTIONS = [
@@ -23,7 +22,7 @@ const COOLDOWN_OPTIONS = [
 
 export const MonitorAlertSettingsPanel: React.FC<
   MonitorAlertSettingsPanelProps
-> = ({ filters, onSettingsChange, loading = false }) => {
+> = ({ filters, onSettingsChange }) => {
   const [settings, setSettings] = useState<MonitorAlertSettings | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -50,10 +49,10 @@ export const MonitorAlertSettingsPanel: React.FC<
         const data = await res.json();
         setSettings(data.settings);
         setError(null);
-      } catch (err: any) {
-        console.error("Failed to fetch monitor alert settings:", err);
-        setError(err.message);
-      }
+    } catch (err) {
+      console.error("Failed to fetch monitor alert settings:", err);
+      setError(err instanceof Error ? err.message : "Failed to fetch monitor alert settings");
+    }
     };
 
     fetchSettings();
@@ -83,9 +82,9 @@ export const MonitorAlertSettingsPanel: React.FC<
       setSettings(data.settings);
       onSettingsChange?.(data.settings);
       setError(null);
-    } catch (err: any) {
+    } catch (err) {
       console.error("Failed to update settings:", err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Failed to update settings");
     } finally {
       setIsSaving(false);
     }
@@ -115,9 +114,9 @@ export const MonitorAlertSettingsPanel: React.FC<
       setSettings(data.settings);
       onSettingsChange?.(data.settings);
       setError(null);
-    } catch (err: any) {
+    } catch (err) {
       console.error("Failed to update cooldown:", err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Failed to update cooldown");
     } finally {
       setIsSaving(false);
     }
@@ -130,10 +129,6 @@ export const MonitorAlertSettingsPanel: React.FC<
       </div>
     );
   }
-
-  const activeCooldown = COOLDOWN_OPTIONS.find(
-    (opt) => opt.value === settings.cooldown_seconds
-  );
 
   return (
     <div className="p-4 bg-[var(--bg)] rounded-md border border-[var(--border)]">

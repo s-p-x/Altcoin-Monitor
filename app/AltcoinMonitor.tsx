@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { TrendingUp, RefreshCw, Download, Bell, Filter, AlertCircle, CheckCircle, Key, Clock, Calendar, ChevronUp } from 'lucide-react';
+import { TrendingUp, RefreshCw, Download, Bell, Filter, AlertCircle, Key, Clock, Calendar } from 'lucide-react';
 import ViewToggle, { type ViewMode } from './components/ViewToggle';
 import CardView from './components/CardView';
 import DenseView from './components/DenseView';
@@ -9,15 +9,62 @@ import Snapshot from './components/Snapshot';
 import Alerts from './components/Alerts';
 import MonitorAlertSettingsPanel from './components/MonitorAlertSettingsPanel';
 import ExplainTab from './components/ExplainTab';
+import { MarketCoin, UniverseCoin } from '@/lib/types';
 
 type TabType = 'monitor' | 'snapshot' | 'alerts' | 'explain';
 
+type UniverseStats = {
+  total: number;
+  coingecko: number;
+  exchange: number;
+  userAdded: number;
+};
+
+type VolumeSpike = {
+  id: string;
+  name: string;
+  symbol: string;
+  volumeIncrease: string;
+  timestamp: string;
+};
+
+type DebugInfo = {
+  message: string;
+  timestamp: string;
+  status?: number;
+  statusText?: string;
+  headers?: Record<string, string>;
+  body?: unknown;
+  attempt?: number;
+  cacheExpiry?: string;
+  coinsReceived?: number;
+  rateLimitRemaining?: string;
+};
+
+type ApiStatus = 'idle' | 'fetching' | 'success' | 'error';
+
+type MarketApiCoin = {
+  id: string;
+  market_cap_rank?: number;
+  name: string;
+  symbol: string;
+  current_price?: number;
+  market_cap?: number;
+  total_volume?: number;
+  price_change_percentage_24h?: number;
+  image?: string;
+};
+
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const MAX_RETRIES = 3;
+const BASE_BACKOFF = 1000; // 1 second
+
 const AltcoinMonitor = () => {
-  const [coins, setCoins] = useState<any[]>([]);
-  const [universeCoins, setUniverseCoins] = useState<any[]>([]);
-  const [filteredCoins, setFilteredCoins] = useState<any[]>([]);
+  const [coins, setCoins] = useState<MarketCoin[]>([]);
+  const [universeCoins, setUniverseCoins] = useState<UniverseCoin[]>([]);
+  const [filteredCoins, setFilteredCoins] = useState<MarketCoin[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [apiKey, setApiKey] = useState('');
   const [apiKeySet, setApiKeySet] = useState(false);
   const [showApiKeyBox, setShowApiKeyBox] = useState(true);
@@ -28,30 +75,26 @@ const AltcoinMonitor = () => {
     minVolumeChange: 10,
     volumeSpikeThreshold: 100
   });
-  const [volumeSpikes, setVolumeSpikes] = useState<any[]>([]);
+  const [volumeSpikes, setVolumeSpikes] = useState<VolumeSpike[]>([]);
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({ 
     key: 'total_volume', 
     direction: 'desc' 
   });
-  const [apiStatus, setApiStatus] = useState('idle');
+  const [apiStatus, setApiStatus] = useState<ApiStatus>('idle');
   const [cacheExpiry, setCacheExpiry] = useState<number | null>(null);
   const [retryCount, setRetryCount] = useState(0);
-  const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('table');
   const [activeTab, setActiveTab] = useState<TabType>('monitor');
   const [openHelp, setOpenHelp] = useState<null | 'mcapMin' | 'mcapMax' | 'volRange' | 'volMcap' | 'spikeThreshold'>(null);
-  const [universeStats, setUniverseStats] = useState<any>(null);
+  const [universeStats, setUniverseStats] = useState<UniverseStats | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(250); // UI display page size (matches upstream page by default)
   const filterContainerRef = useRef<HTMLDivElement>(null);
-
-  const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-  const MAX_RETRIES = 3;
-  const BASE_BACKOFF = 1000; // 1 second
 
   // Load API key, view mode, and active tab from localStorage on mount
   useEffect(() => {
@@ -117,10 +160,10 @@ const AltcoinMonitor = () => {
   };
 
   // Check if cache is still valid
-  const isCacheValid = () => {
+  const isCacheValid = useCallback(() => {
     if (!cacheExpiry) return false;
     return Date.now() < cacheExpiry;
-  };
+  }, [cacheExpiry]);
 
   // Exponential backoff delay
   const getBackoffDelay = (attempt: number) => {
@@ -149,7 +192,7 @@ const AltcoinMonitor = () => {
     while (attempt < MAX_RETRIES) {
       try {
         // Store previous volumes for spike detection
-        const previousCoins = coins.reduce((acc: any, coin: any) => {
+        const previousCoins = coins.reduce<Record<string, number>>((acc, coin) => {
           acc[coin.id] = coin.total_volume;
           return acc;
         }, {});
@@ -223,7 +266,7 @@ const AltcoinMonitor = () => {
         }
         
         const result = await response.json();
-        const coinsPayload = Array.isArray(result) ? result : result.coins;
+        const coinsPayload = Array.isArray(result) ? result : (result?.coins ?? []);
         const meta = result.meta;
         console.log('✓ Received coins:', coinsPayload?.length, meta ? `(pages=${meta.pageCount}, perPage=${meta.perPage}, total=${meta.totalFetched})` : '');
         
@@ -232,8 +275,8 @@ const AltcoinMonitor = () => {
         }
 
         // Process and normalize data from CoinGecko
-        const newSpikes: any[] = [];
-        const processedData = coinsPayload.map((coin: any) => {
+        const newSpikes: VolumeSpike[] = [];
+        const processedData = (coinsPayload as MarketApiCoin[]).map((coin) => {
           const volume = coin.total_volume || 0;
           const marketCap = coin.market_cap || 0;
           const volumeToMcapRatio = marketCap > 0 ? (volume / marketCap) * 100 : 0;
@@ -296,7 +339,8 @@ const AltcoinMonitor = () => {
         
         if (attempt === MAX_RETRIES - 1) {
           // Last attempt failed
-          setError((err as any).message || 'Failed to fetch data after multiple attempts');
+          const message = err instanceof Error ? err.message : 'Failed to fetch data after multiple attempts';
+          setError(message);
           setApiStatus('error');
           setRetryCount(attempt + 1);
         } else {
@@ -311,7 +355,7 @@ const AltcoinMonitor = () => {
     }
     
     setLoading(false);
-  }, [coins, filters.volumeSpikeThreshold, cacheExpiry]);
+  }, [coins, filters.volumeSpikeThreshold, cacheExpiry, isCacheValid]);
 
   // Apply filters
   useEffect(() => {
@@ -359,7 +403,7 @@ const AltcoinMonitor = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [autoRefresh, fetchCoins, cacheExpiry]);
+  }, [autoRefresh, fetchCoins, isCacheValid]);
 
   // Sort coins
   const sortedCoins = [...searchedCoins].sort((a, b) => {
@@ -572,6 +616,7 @@ const AltcoinMonitor = () => {
                 </p>
                 {apiStatus === 'success' && (
                   <div className="flex items-center gap-2 px-3 py-1 bg-green-900 bg-opacity-30 border border-green-700 rounded-full">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img 
                       src="/connected.svg" 
                       alt="Connected" 
@@ -984,7 +1029,10 @@ const AltcoinMonitor = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          {coin.image && <img src={coin.image} alt={coin.name} className="w-8 h-8 mr-3 rounded-full" />}
+                          {coin.image && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={coin.image} alt={coin.name} className="w-8 h-8 mr-3 rounded-full" />
+                          )}
                           <div>
                             <div className="text-sm font-medium text-[var(--text)]">{coin.name}</div>
                             <div className="text-sm text-[var(--text-muted)]">{coin.symbol.toUpperCase()}</div>

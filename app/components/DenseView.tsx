@@ -2,14 +2,34 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { TrendingUp, TrendingDown, ChevronUp, X } from 'lucide-react';
+import { MarketCoin } from '@/lib/types';
 
 interface DenseViewProps {
-  coins: any[];
+  coins: MarketCoin[];
   formatNumber: (num: number) => string;
   onSort: (key: string) => void;
   sortConfig: { key: string; direction: 'asc' | 'desc' };
-  universeStats?: { total: number; filtered: number };
+  universeStats?: { total: number; coingecko: number; exchange: number; userAdded: number };
 }
+
+const SortIcon = ({
+  columnKey,
+  sortKey,
+  direction,
+}: {
+  columnKey: string;
+  sortKey: string;
+  direction: 'asc' | 'desc';
+}) => {
+  if (sortKey !== columnKey) {
+    return <span className="text-[var(--text-faint)] text-xs">⇅</span>;
+  }
+  return (
+    <span className="text-[var(--accent)] text-xs">
+      {direction === 'desc' ? '↓' : '↑'}
+    </span>
+  );
+};
 
 const DenseView: React.FC<DenseViewProps> = ({ 
   coins, 
@@ -19,7 +39,6 @@ const DenseView: React.FC<DenseViewProps> = ({
   universeStats
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
 
   // Debounced search filtering
   const filteredCoins = useMemo(() => {
@@ -56,11 +75,6 @@ const DenseView: React.FC<DenseViewProps> = ({
     }
   }, [handleClearSearch]);
 
-  const SortIcon = ({ columnKey }: { columnKey: string }) => {
-    if (sortConfig.key !== columnKey) return <span className="text-[var(--text-faint)] text-xs">⇅</span>;
-    return <span className="text-[var(--accent)] text-xs">{sortConfig.direction === 'desc' ? '↓' : '↑'}</span>;
-  };
-
   return (
     <div className="bg-[var(--panel)] rounded-lg border border-[var(--border)] overflow-hidden">
       {/* Search Bar */}
@@ -73,8 +87,6 @@ const DenseView: React.FC<DenseViewProps> = ({
               value={searchQuery}
               onChange={handleSearchChange}
               onKeyDown={handleKeyDown}
-              onFocus={() => setIsSearching(true)}
-              onBlur={() => setIsSearching(false)}
               className="w-full px-3 py-2 rounded border border-[var(--border)] bg-[var(--panel)] text-[var(--text)] text-sm placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
             />
             {searchQuery && (
@@ -116,7 +128,7 @@ const DenseView: React.FC<DenseViewProps> = ({
                 onClick={() => onSort('price')}
               >
                 <div className="flex items-center justify-end gap-1">
-                  Price <SortIcon columnKey="price" />
+                  Price <SortIcon columnKey="price" sortKey={sortConfig.key} direction={sortConfig.direction} />
                 </div>
               </th>
               <th
@@ -124,7 +136,7 @@ const DenseView: React.FC<DenseViewProps> = ({
                 onClick={() => onSort('market_cap')}
               >
                 <div className="flex items-center justify-end gap-1">
-                  MCap <SortIcon columnKey="market_cap" />
+                  MCap <SortIcon columnKey="market_cap" sortKey={sortConfig.key} direction={sortConfig.direction} />
                 </div>
               </th>
               <th
@@ -132,7 +144,7 @@ const DenseView: React.FC<DenseViewProps> = ({
                 onClick={() => onSort('total_volume')}
               >
                 <div className="flex items-center justify-end gap-1">
-                  Vol <SortIcon columnKey="total_volume" />
+                  Vol <SortIcon columnKey="total_volume" sortKey={sortConfig.key} direction={sortConfig.direction} />
                 </div>
               </th>
               <th
@@ -140,7 +152,7 @@ const DenseView: React.FC<DenseViewProps> = ({
                 onClick={() => onSort('volume_to_mcap_ratio')}
               >
                 <div className="flex items-center justify-end gap-1">
-                  V/M% <SortIcon columnKey="volume_to_mcap_ratio" />
+                  V/M% <SortIcon columnKey="volume_to_mcap_ratio" sortKey={sortConfig.key} direction={sortConfig.direction} />
                 </div>
               </th>
               <th
@@ -148,7 +160,7 @@ const DenseView: React.FC<DenseViewProps> = ({
                 onClick={() => onSort('price_change_24h')}
               >
                 <div className="flex items-center justify-end gap-1">
-                  24h% <SortIcon columnKey="price_change_24h" />
+                  24h% <SortIcon columnKey="price_change_24h" sortKey={sortConfig.key} direction={sortConfig.direction} />
                 </div>
               </th>
             </tr>
@@ -162,6 +174,7 @@ const DenseView: React.FC<DenseViewProps> = ({
                 <td className="px-4 py-2 whitespace-nowrap">
                   <div className="flex items-center gap-2">
                     {coin.image && (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={coin.image}
                         alt={coin.name}

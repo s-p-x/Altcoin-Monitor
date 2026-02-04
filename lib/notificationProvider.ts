@@ -3,7 +3,7 @@
  * Supports multiple delivery channels (in-app, telegram, email, etc.)
  */
 
-import { AlertEvent, AlertType } from "@/lib/types";
+import { AlertType } from "@/lib/types";
 
 export type NotificationChannel = "inApp" | "telegram" | "email" | "slack";
 

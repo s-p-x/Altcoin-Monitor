@@ -2,8 +2,24 @@ import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
+type CoinGeckoMarket = {
+  id: string;
+  symbol: string;
+  name: string;
+  market_cap_rank?: number;
+  current_price?: number;
+  market_cap?: number;
+  total_volume?: number;
+  price_change_percentage_24h?: number;
+  image?: string;
+};
+
 // Simple in-memory cache (per serverless instance) to avoid repeated upstream calls
-type CacheEntry = { data: any; expiresAt: number; meta: { totalFetched: number; pageCount: number; perPage: number } };
+type CacheEntry = {
+  data: CoinGeckoMarket[];
+  expiresAt: number;
+  meta: { totalFetched: number; pageCount: number; perPage: number };
+};
 const cache: Record<string, CacheEntry> = {};
 const CACHE_TTL_MS = 150_000; // ~150s within 60-180 requirement
 
@@ -26,7 +42,7 @@ export async function GET(request: Request) {
 
   // Limited concurrency (2) to be gentle to API
   const pageNumbers = Array.from({ length: pageCount }, (_, idx) => idx + 1);
-  const results: any[] = [];
+  const results: CoinGeckoMarket[] = [];
 
   for (let i = 0; i < pageNumbers.length; i += 2) {
     const batch = pageNumbers.slice(i, i + 2);
@@ -48,14 +64,23 @@ export async function GET(request: Request) {
 
         if (!res.ok) {
           console.warn(`CoinGecko markets page ${page} failed:`, res.status, res.statusText);
-          return [] as any[];
+          return [] as CoinGeckoMarket[];
         }
 
-        const data = await res.json();
+        const data: unknown = await res.json();
+        const items = Array.isArray(data) ? data : [];
         if (process.env.NODE_ENV === "development") {
-          console.log(`Fetched CoinGecko markets page ${page}: ${data.length}`);
+          console.log(`Fetched CoinGecko markets page ${page}: ${items.length}`);
         }
-        return data;
+        return items.filter((item): item is CoinGeckoMarket => {
+          return (
+            typeof item === "object" &&
+            item !== null &&
+            typeof (item as { id?: unknown }).id === "string" &&
+            typeof (item as { symbol?: unknown }).symbol === "string" &&
+            typeof (item as { name?: unknown }).name === "string"
+          );
+        });
       })
     );
     for (const arr of batchResults) results.push(...arr);

@@ -20,4 +20,4 @@ export function getPrismaClient(): PrismaClient {
   return prisma;
 }
 
-export default null as any;
+export default null as unknown as PrismaClient;

@@ -10,12 +10,15 @@ import { NextResponse, NextRequest } from "next/server";
 import { getPrismaClient } from "@/lib/prismaClient";
 import {
   evaluateSpikeAlerts,
-  evaluateMonitorAlerts,
 } from "@/lib/alertEvaluator";
 
 // Force Node.js runtime (not Edge)
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Failed to evaluate alerts";
+}
 
 /**
  * Verify request using x-alert-secret header
@@ -240,7 +243,7 @@ export async function POST(request: NextRequest) {
       },
       ms: duration,
     });
-  } catch (error: any) {
+  } catch (error) {
     const duration = Date.now() - startTime;
     console.error(`[ALERT_EVAL] ERROR after ${duration}ms:`, error);
 
@@ -253,7 +256,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       {
-        error: error.message || "Failed to evaluate alerts",
+        error: getErrorMessage(error),
         ms: duration,
       },
       { status: 500 }
@@ -265,7 +268,7 @@ export async function POST(request: NextRequest) {
  * GET /api/alerts/evaluate
  * Health check / manual trigger
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   // Allow GET for health check without auth
   return NextResponse.json({
     status: "ready",

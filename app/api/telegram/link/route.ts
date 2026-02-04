@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { generateTelegramLinkCode, getTelegramLink } from "@/lib/dbRepository";
+import { generateTelegramLinkCode } from "@/lib/dbRepository";
 
 /**
  * POST /api/telegram/link
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     const code = Math.random().toString().substring(2, 8).padStart(6, '0');
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    const link = await generateTelegramLinkCode(userId, code, expiresAt);
+    await generateTelegramLinkCode(userId, code, expiresAt);
 
     return NextResponse.json(
       {

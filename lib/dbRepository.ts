@@ -4,7 +4,14 @@
  */
 
 import { getPrismaClient } from "@/lib/prismaClient";
-import { FilterSignatureInput, AlertRule, AlertEvent, MonitorAlertSettings } from "@/lib/types";
+import {
+  FilterSignatureInput,
+  AlertRule,
+  AlertEvent,
+  MonitorAlertSettings,
+  AlertType,
+  AlertStatus,
+} from "@/lib/types";
 import crypto from "crypto";
 
 /**
@@ -167,7 +174,7 @@ export async function createAlertEvent(event: AlertEvent): Promise<AlertEvent> {
   return {
     id: created.id,
     rule_id: created.ruleId,
-    type: created.type as any,
+    type: created.type as AlertType,
     symbol: created.symbol,
     timeframe: created.timeframe,
     threshold: created.threshold,
@@ -177,7 +184,7 @@ export async function createAlertEvent(event: AlertEvent): Promise<AlertEvent> {
     monitor_filters: created.monitorFiltersJson ? JSON.parse(created.monitorFiltersJson) : null,
     triggered_at: created.triggeredAt.toISOString(),
     delivered_channels: JSON.parse(created.deliveredChannelsJson),
-    status: created.status as any,
+    status: created.status as AlertStatus,
     user_id: created.userId,
   };
 }
@@ -193,7 +200,7 @@ export async function getUserAlertEvents(userId: string, limit: number = 50): Pr
   return events.map((event) => ({
     id: event.id,
     rule_id: event.ruleId,
-    type: event.type as any,
+    type: event.type as AlertType,
     symbol: event.symbol,
     timeframe: event.timeframe,
     threshold: event.threshold,
@@ -203,7 +210,7 @@ export async function getUserAlertEvents(userId: string, limit: number = 50): Pr
     monitor_filters: event.monitorFiltersJson ? JSON.parse(event.monitorFiltersJson) : null,
     triggered_at: event.triggeredAt.toISOString(),
     delivered_channels: JSON.parse(event.deliveredChannelsJson),
-    status: event.status as any,
+    status: event.status as AlertStatus,
     user_id: event.userId,
   }));
 }

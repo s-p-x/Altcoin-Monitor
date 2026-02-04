@@ -7,6 +7,10 @@ import {
 } from "@/lib/dbRepository";
 import { AlertRule } from "@/lib/types";
 
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Request failed";
+}
+
 /**
  * Get user ID from request (dev auth: x-user-id header or demo_user)
  */
@@ -24,10 +28,10 @@ export async function GET(request: NextRequest) {
     const userId = getUserId(request);
     const rules = await getUserAlertRules(userId);
     return NextResponse.json({ rules });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[GET /api/alerts/rules] Error:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to fetch rules" },
+      { error: getErrorMessage(error) },
       { status: 500 }
     );
   }
@@ -65,10 +69,10 @@ export async function POST(request: NextRequest) {
 
     const created = await createAlertRule(rule);
     return NextResponse.json({ rule: created }, { status: 201 });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[POST /api/alerts/rules] Error:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to create rule" },
+      { error: getErrorMessage(error) },
       { status: 500 }
     );
   }
@@ -97,10 +101,10 @@ export async function PUT(request: NextRequest) {
     });
 
     return NextResponse.json({ rule: updated });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[PUT /api/alerts/rules] Error:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to update rule" },
+      { error: getErrorMessage(error) },
       { status: 500 }
     );
   }
@@ -124,10 +128,10 @@ export async function DELETE(request: NextRequest) {
 
     await deleteAlertRule(id);
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[DELETE /api/alerts/rules] Error:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to delete rule" },
+      { error: getErrorMessage(error) },
       { status: 500 }
     );
   }

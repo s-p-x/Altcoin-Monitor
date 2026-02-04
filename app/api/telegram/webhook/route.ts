@@ -204,7 +204,7 @@ export async function POST(req: NextRequest) {
  * GET /api/telegram/webhook
  * Health check endpoint
  */
-export async function GET(req: NextRequest) {
+export async function GET() {
   const TELEGRAM_BOT_TOKEN = getTelegramBotToken();
   const TELEGRAM_WEBHOOK_SECRET = getTelegramWebhookSecret();
 
@@ -213,88 +213,4 @@ export async function GET(req: NextRequest) {
     secured: !!TELEGRAM_WEBHOOK_SECRET,
     message: "Telegram webhook endpoint is active",
   });
-}
-
-  } catch (error) {
-    console.error("Telegram webhook error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
-  }
-}
-
-/**
- * Send message to Telegram
- * Returns false silently if bot token is not configured
- */
-export async function sendTelegramMessage(
-  chatId: string,
-  text: string
-): Promise<boolean> {
-  const TELEGRAM_BOT_TOKEN = getTelegramBotToken();
-
-  // If Telegram is not configured, fail silently
-  if (!TELEGRAM_BOT_TOKEN) {
-    return false;
-  }
-
-  try {
-    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text,
-        parse_mode: "Markdown",
-      }),
-    });
-
-    if (!response.ok) {
-      console.error(`Telegram API error: ${response.status}`);
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error("Failed to send Telegram message:", error);
-    return false;
-  }
-}
-
-/**
- * Set up webhook with Telegram
- * Call this once during deployment or setup (if token is configured)
- */
-export async function setupWebhook(baseUrl: string): Promise<boolean> {
-  const TELEGRAM_BOT_TOKEN = getTelegramBotToken();
-
-  if (!TELEGRAM_BOT_TOKEN) {
-    console.warn("Telegram bot token not configured, skipping webhook setup");
-    return false;
-  }
-
-  try {
-    const webhookUrl = `${baseUrl}/api/telegram/webhook/${TELEGRAM_BOT_TOKEN}`;
-    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook`;
-
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        url: webhookUrl,
-        allowed_updates: ["message"],
-      }),
-    });
-
-    const data = await response.json();
-    console.log("Telegram webhook setup response:", data);
-
-    return data.ok;
-  } catch (error) {
-    console.error("Failed to setup Telegram webhook:", error);
-    return false;
-  }
 }

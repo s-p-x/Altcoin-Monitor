@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { Search, AlertCircle, CheckCircle, Calendar, Clock, Zap } from 'lucide-react';
+import { Search, AlertCircle, CheckCircle, Calendar, Zap } from 'lucide-react';
 import SnapshotChart from './SnapshotChart';
 
 interface CoinSearchResult {
@@ -38,7 +38,6 @@ const Snapshot: React.FC = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [snapshotData, setSnapshotData] = useState<SnapshotData | null>(null);
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
-  const [searching, setSearching] = useState(false);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -71,7 +70,6 @@ const Snapshot: React.FC = () => {
       return;
     }
 
-    setSearching(true);
     setError(null);
 
     try {
@@ -92,7 +90,7 @@ const Snapshot: React.FC = () => {
       setError('Failed to search coins. Please try again.');
       setSearchResults([]);
     } finally {
-      setSearching(false);
+      // no-op
     }
   }, []);
 
@@ -106,7 +104,7 @@ const Snapshot: React.FC = () => {
   }, [ticker, handleSearchTicker]);
 
   // Get window duration in milliseconds and seconds
-  const getWindowDuration = () => {
+  const getWindowDuration = useCallback(() => {
     const durationMap: { [key: string]: number } = {
       '6h': 6 * 60 * 60 * 1000,
       '24h': 24 * 60 * 60 * 1000,
@@ -114,7 +112,7 @@ const Snapshot: React.FC = () => {
       '30d': 30 * 24 * 60 * 60 * 1000,
     };
     return durationMap[window] || durationMap['24h'];
-  };
+  }, [window]);
 
   // Find closest data point to target timestamp
   const findClosestDataPoint = (
@@ -157,8 +155,6 @@ const Snapshot: React.FC = () => {
       }
 
       const targetTimestampMs = targetDate.getTime();
-      const targetTimestampSec = Math.floor(targetTimestampMs / 1000);
-
       // Calculate from/to based on window
       const windowDurationMs = getWindowDuration();
       const fromTimestampSec = Math.floor(
@@ -253,7 +249,7 @@ const Snapshot: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedCoin, datetime, window]);
+  }, [selectedCoin, datetime, getWindowDuration]);
 
   const formatNumber = (num: number) => {
     if (num >= 1e9) return `$${(num / 1e9).toFixed(2)}B`;
@@ -424,7 +420,6 @@ const Snapshot: React.FC = () => {
       {chartData.length > 0 && (
         <SnapshotChart
           data={chartData}
-          targetTimestamp={snapshotData?.timestamp || 0}
           loading={loading}
         />
       )}

@@ -103,3 +103,34 @@ export interface ExplainRequest {
 export interface ExplainResponse {
   response: string;
 }
+
+/**
+ * Market coin shape used by UI views
+ */
+export interface MarketCoin {
+  id: string;
+  rank?: number;
+  name: string;
+  symbol: string;
+  slug?: string;
+  price: number;
+  market_cap: number;
+  total_volume: number;
+  volume_to_mcap_ratio: number;
+  price_change_24h: number;
+  image?: string;
+}
+
+/**
+ * Universe coin shape from merged sources
+ */
+export interface UniverseCoin {
+  id: string;
+  baseSymbol: string;
+  pairSymbol?: string;
+  name: string;
+  marketCap?: number;
+  volume24h?: number;
+  volMcapPct?: number;
+  source: "coingecko" | "exchange" | "user";
+}

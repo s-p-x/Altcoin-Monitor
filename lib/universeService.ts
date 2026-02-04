@@ -10,17 +10,7 @@
  */
 
 import NodeCache from "node-cache";
-
-interface Coin {
-  id: string; // stable internal id (usually provider id)
-  baseSymbol: string; // e.g., "BTC"
-  pairSymbol?: string; // e.g., "BTCUSDT" if applicable
-  name: string;
-  marketCap?: number;
-  volume24h?: number;
-  volMcapPct?: number; // volume24h / marketCap * 100
-  source: "coingecko" | "exchange" | "user";
-}
+import { UniverseCoin } from "@/lib/types";
 
 // Server-side cache (2 minutes, within 60-180s requirement)
 const universeCache = new NodeCache({ stdTTL: 150, checkperiod: 60 });
@@ -49,10 +39,24 @@ const COMMON_EXCHANGE_SYMBOLS = [
   "OP",
 ];
 
+type CoinLike = {
+  id?: string;
+  symbol?: string;
+  baseSymbol?: string;
+  pairSymbol?: string;
+  name?: string;
+  marketCap?: number;
+  volume24h?: number;
+  volMcapPct?: number;
+};
+
 /**
  * Normalize a coin to internal format
  */
-function normalizeCoin(coin: any, source: "coingecko" | "exchange" | "user"): Coin {
+function normalizeCoin(
+  coin: CoinLike,
+  source: "coingecko" | "exchange" | "user"
+): UniverseCoin {
   const baseSymbol = String(coin.symbol || coin.baseSymbol || "").toUpperCase();
   const pairSymbol = coin.pairSymbol
     ? String(coin.pairSymbol).toUpperCase()
@@ -78,8 +82,8 @@ function normalizeCoin(coin: any, source: "coingecko" | "exchange" | "user"): Co
 /**
  * Deduplicate coins by stable key (prefer id, fallback to symbol)
  */
-function deduplicateCoins(coins: Coin[]): Coin[] {
-  const seen = new Map<string, Coin>();
+function deduplicateCoins(coins: UniverseCoin[]): UniverseCoin[] {
+  const seen = new Map<string, UniverseCoin>();
 
   for (const coin of coins) {
     const key = coin.id.toLowerCase();
@@ -94,7 +98,11 @@ function deduplicateCoins(coins: Coin[]): Coin[] {
 /**
  * Fetch top N coins from CoinGecko
  */
-async function fetchCoinGeckoTopCoins(limit: number = 500, perPage: number = 250, pageCount?: number): Promise<Coin[]> {
+async function fetchCoinGeckoTopCoins(
+  limit: number = 500,
+  perPage: number = 250,
+  pageCount?: number
+): Promise<UniverseCoin[]> {
   // perPage capped at 250 due to API limits
   perPage = Math.min(perPage || 250, 250);
   const pages = pageCount ? Math.max(1, pageCount) : Math.max(1, Math.ceil(limit / perPage));
@@ -102,7 +110,7 @@ async function fetchCoinGeckoTopCoins(limit: number = 500, perPage: number = 250
   try {
     // Limit concurrency to 2 to be gentle to API
     const pageNumbers = Array.from({ length: pages }, (_, idx) => idx + 1);
-    const results: Coin[] = [];
+    const results: UniverseCoin[] = [];
 
     for (let i = 0; i < pageNumbers.length; i += 2) {
       const batch = pageNumbers.slice(i, i + 2);
@@ -114,23 +122,26 @@ async function fetchCoinGeckoTopCoins(limit: number = 500, perPage: number = 250
 
         if (!response.ok) {
           console.warn(`Failed to fetch CoinGecko page ${page}`);
-          return [] as Coin[];
+          return [] as UniverseCoin[];
         }
 
-        const data = await response.json();
+        const data: unknown = await response.json();
+        const items = Array.isArray(data) ? data : [];
 
-        return data.map((coin: any) =>
-          normalizeCoin(
-            {
-              id: coin.id,
-              symbol: coin.symbol,
-              name: coin.name,
-              marketCap: coin.market_cap,
-              volume24h: coin.total_volume,
-            },
-            "coingecko"
-          )
-        );
+        return items
+          .filter((item): item is Record<string, unknown> => typeof item === "object" && item !== null)
+          .map((coin) =>
+            normalizeCoin(
+              {
+                id: typeof coin.id === "string" ? coin.id : undefined,
+                symbol: typeof coin.symbol === "string" ? coin.symbol : undefined,
+                name: typeof coin.name === "string" ? coin.name : undefined,
+                marketCap: typeof coin.market_cap === "number" ? coin.market_cap : undefined,
+                volume24h: typeof coin.total_volume === "number" ? coin.total_volume : undefined,
+              },
+              "coingecko"
+            )
+          );
       }));
       for (const arr of batchResults) results.push(...arr);
     }
@@ -148,7 +159,7 @@ async function fetchCoinGeckoTopCoins(limit: number = 500, perPage: number = 250
 /**
  * Get common exchange symbols as coins
  */
-function getExchangeSymbolCoins(): Coin[] {
+function getExchangeSymbolCoins(): UniverseCoin[] {
   return COMMON_EXCHANGE_SYMBOLS.map((symbol) =>
     normalizeCoin(
       {
@@ -164,7 +175,7 @@ function getExchangeSymbolCoins(): Coin[] {
 /**
  * Fetch user-added symbols from database
  */
-async function fetchUserAddedSymbols(userId: string): Promise<Coin[]> {
+async function fetchUserAddedSymbols(userId: string): Promise<UniverseCoin[]> {
   try {
     const { getPrismaClient } = await import("@/lib/prismaClient");
     const prisma = getPrismaClient();
@@ -198,13 +209,19 @@ type UniverseOptions = {
   pageCount?: number;
 };
 
-export async function getUniverse(userId: string, opts: UniverseOptions = {}): Promise<{ coins: Coin[]; meta: { totalFetched: number; pageCount: number; perPage: number } }> {
+export async function getUniverse(
+  userId: string,
+  opts: UniverseOptions = {}
+): Promise<{ coins: UniverseCoin[]; meta: { totalFetched: number; pageCount: number; perPage: number } }> {
   const perPage = Math.min(Math.max(opts.perPage ?? 250, 50), 250);
   const pageCount = Math.min(Math.max(opts.pageCount ?? 2, 1), 4);
   const cacheKey = `universe:${userId}:p${perPage}:c${pageCount}:${process.env.COINGECKO_API_KEY ? 'key' : 'nokey'}`;
 
   // Check cache first
-  const cached = universeCache.get<{ coins: Coin[]; meta: { totalFetched: number; pageCount: number; perPage: number } }>(cacheKey);
+  const cached = universeCache.get<{
+    coins: UniverseCoin[];
+    meta: { totalFetched: number; pageCount: number; perPage: number };
+  }>(cacheKey);
   if (cached) {
     return cached;
   }
@@ -241,7 +258,10 @@ export async function getUniverse(userId: string, opts: UniverseOptions = {}): P
   return payload;
 }
 
-export async function getUniverseCoins(userId: string, opts: UniverseOptions = {}): Promise<Coin[]> {
+export async function getUniverseCoins(
+  userId: string,
+  opts: UniverseOptions = {}
+): Promise<UniverseCoin[]> {
   const { coins } = await getUniverse(userId, opts);
   return coins;
 }

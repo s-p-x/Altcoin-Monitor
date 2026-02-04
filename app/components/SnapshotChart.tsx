@@ -22,13 +22,46 @@ interface ChartDataPoint {
 
 interface SnapshotChartProps {
   data: ChartDataPoint[];
-  targetTimestamp: number;
   loading?: boolean;
 }
 
+type TooltipPayload = {
+  payload: ChartDataPoint;
+};
+
+type TooltipProps = {
+  active?: boolean;
+  payload?: TooltipPayload[];
+};
+
+const CustomTooltip = ({ active, payload }: TooltipProps) => {
+  if (active && payload && payload[0]) {
+    const data = payload[0].payload;
+    const formatVolume = (value: number) => {
+      if (value >= 1e9) return `$${(value / 1e9).toFixed(2)}B`;
+      if (value >= 1e6) return `$${(value / 1e6).toFixed(2)}M`;
+      if (value >= 1e3) return `$${(value / 1e3).toFixed(2)}K`;
+      return `$${value.toFixed(0)}`;
+    };
+    return (
+      <div className="bg-[var(--panel)] border border-[var(--accent)] rounded px-3 py-2 text-xs">
+        <p className="text-[var(--text)]">{data.time}</p>
+        <p className="text-[var(--accent)]">
+          Volume: {formatVolume(data.volume)}
+        </p>
+        {data.isTarget && (
+          <p className="text-[var(--semantic-green)] font-semibold">
+            (Target)
+          </p>
+        )}
+      </div>
+    );
+  }
+  return null;
+};
+
 const SnapshotChart: React.FC<SnapshotChartProps> = ({
   data,
-  targetTimestamp,
   loading = false,
 }) => {
   if (loading) {
@@ -58,27 +91,6 @@ const SnapshotChart: React.FC<SnapshotChartProps> = ({
       return `$${(value / 1e3).toFixed(2)}K`;
     }
     return `$${value.toFixed(0)}`;
-  };
-
-  const CustomTooltip = (props: any) => {
-    const { active, payload } = props;
-    if (active && payload && payload[0]) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-[var(--panel)] border border-[var(--accent)] rounded px-3 py-2 text-xs">
-          <p className="text-[var(--text)]">{data.time}</p>
-          <p className="text-[var(--accent)]">
-            Volume: {formatVolume(data.volume)}
-          </p>
-          {data.isTarget && (
-            <p className="text-[var(--semantic-green)] font-semibold">
-              (Target)
-            </p>
-          )}
-        </div>
-      );
-    }
-    return null;
   };
 
   return (

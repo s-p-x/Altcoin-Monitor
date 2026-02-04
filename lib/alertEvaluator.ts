@@ -7,17 +7,13 @@
  */
 
 import {
-  AlertRule,
   AlertEvent,
-  MonitorAlertSettings,
   FilterSignatureInput,
-  MonitorAlertFilters,
 } from "@/lib/types";
 import {
   createAlertEvent,
   generateFilterSignature,
   getOrCreateMonitorAlertSettings,
-  updateMonitorAlertSettings,
   checkAndUpdateCoinCooldown,
   checkSpikeRuleCooldown,
   getUserAlertRules,
@@ -25,7 +21,7 @@ import {
   upsertMonitorAlertState,
 } from "@/lib/dbRepository";
 import { notificationProvider, NotificationPayload } from "@/lib/notificationProvider";
-import { fetchCandles, calculateVolumeSpike } from "@/lib/exchangeAdapter";
+import { fetchCandles } from "@/lib/exchangeAdapter";
 
 /**
  * Unique ID generator

@@ -9,8 +9,20 @@ interface Message {
   timestamp: Date;
 }
 
+type ExplainUniverseCoin = {
+  id: string;
+  symbol?: string;
+  baseSymbol?: string;
+  name?: string;
+  market_cap?: number;
+  total_volume?: number;
+  current_price?: number;
+  marketCap?: number;
+  volume24h?: number;
+};
+
 interface ExplainTabProps {
-  universeCoins: any[];
+  universeCoins: ExplainUniverseCoin[];
 }
 
 const ExplainTab: React.FC<ExplainTabProps> = ({ universeCoins }) => {
@@ -31,9 +43,10 @@ const ExplainTab: React.FC<ExplainTabProps> = ({ universeCoins }) => {
     if (!query || universeCoins.length === 0) return null;
 
     // Exact symbol match (case-insensitive)
-    const exactMatch = universeCoins.find(
-      (coin) => coin.symbol?.toUpperCase() === query
-    );
+    const exactMatch = universeCoins.find((coin) => {
+      const symbol = coin.symbol ?? coin.baseSymbol;
+      return symbol?.toUpperCase() === query;
+    });
     if (exactMatch) return exactMatch;
 
     // Fallback: name contains query
@@ -70,10 +83,10 @@ const ExplainTab: React.FC<ExplainTabProps> = ({ universeCoins }) => {
           matchedCoin: matchedCoin
             ? {
                 id: matchedCoin.id,
-                symbol: matchedCoin.symbol,
-                name: matchedCoin.name,
-                market_cap: matchedCoin.market_cap,
-                total_volume: matchedCoin.total_volume,
+                symbol: matchedCoin.symbol ?? matchedCoin.baseSymbol ?? '',
+                name: matchedCoin.name ?? '',
+                market_cap: matchedCoin.market_cap ?? matchedCoin.marketCap,
+                total_volume: matchedCoin.total_volume ?? matchedCoin.volume24h,
                 current_price: matchedCoin.current_price,
                 coingecko_url: `https://www.coingecko.com/en/coins/${matchedCoin.id}`,
               }
@@ -96,8 +109,8 @@ const ExplainTab: React.FC<ExplainTabProps> = ({ universeCoins }) => {
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
-    } catch (err: any) {
-      setError(err.message || 'Failed to get response');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to get response');
       console.error('Explain API error:', err);
     } finally {
       setIsLoading(false);

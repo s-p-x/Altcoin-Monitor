@@ -9,33 +9,13 @@
 
 import {
   generateFilterSignature,
-  createAlertRule,
-  getOrCreateMonitorAlertSettings,
-  updateMonitorAlertSettings,
   checkAndUpdateCoinCooldown,
   checkSpikeRuleCooldown,
 } from "@/lib/alertStore";
 import {
   evaluateMonitorAlerts,
-  evaluateSpikeAlerts,
 } from "@/lib/alertEvaluator";
-import { AlertRule, FilterSignatureInput } from "@/lib/types";
-
-// Test utilities
-function createTestRule(symbol: string): AlertRule {
-  return {
-    id: `test_rule_${Date.now()}`,
-    user_id: "test_user",
-    symbol,
-    timeframes: ["1h", "4h"],
-    thresholds: [2, 3],
-    baseline_n: 20,
-    cooldown_seconds: 300,
-    enabled: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  };
-}
+import { FilterSignatureInput } from "@/lib/types";
 
 // Test 1: New coin detection under stable filter signature
 export async function testNewCoinDetection() {

@@ -36,7 +36,7 @@ const ViewToggle: React.FC<ViewToggleProps> = ({ viewMode, onChange }) => {
 
   return (
     <div className="flex items-center gap-1 bg-[var(--panel)] rounded-lg p-1 border border-[var(--border)]">
-      {views.map(({ mode, icon, label, tooltip }) => (
+      {views.map(({ mode, icon, tooltip }) => (
         <button
           key={mode}
           onClick={() => onChange(mode)}

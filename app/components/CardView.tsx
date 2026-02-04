@@ -2,9 +2,10 @@
 
 import React from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
+import { MarketCoin } from '@/lib/types';
 
 interface CardViewProps {
-  coins: any[];
+  coins: MarketCoin[];
   formatNumber: (num: number) => string;
 }
 
@@ -20,6 +21,7 @@ const CardView: React.FC<CardViewProps> = ({ coins, formatNumber }) => {
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-3 flex-1">
               {coin.image && (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={coin.image}
                   alt={coin.name}
