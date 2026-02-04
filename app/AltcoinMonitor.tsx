@@ -78,7 +78,7 @@ const AltcoinMonitor = () => {
   const [volumeSpikes, setVolumeSpikes] = useState<VolumeSpike[]>([]);
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
-  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({ 
+  const [sortConfig, setSortConfig] = useState<{ key: keyof MarketCoin; direction: 'asc' | 'desc' }>({ 
     key: 'total_volume', 
     direction: 'desc' 
   });
@@ -407,8 +407,21 @@ const AltcoinMonitor = () => {
 
   // Sort coins
   const sortedCoins = [...searchedCoins].sort((a, b) => {
-    const aVal = a[sortConfig.key] || 0;
-    const bVal = b[sortConfig.key] || 0;
+    const aVal = a[sortConfig.key];
+    const bVal = b[sortConfig.key];
+    
+    // Handle undefined/null values
+    if (aVal == null && bVal == null) return 0;
+    if (aVal == null) return 1;
+    if (bVal == null) return -1;
+    
+    // String comparison for string fields
+    if (typeof aVal === 'string' && typeof bVal === 'string') {
+      const compareResult = aVal.localeCompare(bVal);
+      return sortConfig.direction === 'desc' ? -compareResult : compareResult;
+    }
+    
+    // Numeric comparison for number fields
     return sortConfig.direction === 'desc' ? (aVal < bVal ? 1 : -1) : (aVal > bVal ? 1 : -1);
   });
 
@@ -417,7 +430,7 @@ const AltcoinMonitor = () => {
   const clampedPage = Math.min(Math.max(currentPage, 1), totalPages);
   const displayCoins = sortedCoins.slice((clampedPage - 1) * pageSize, clampedPage * pageSize);
 
-  const handleSort = (key: string) => {
+  const handleSort = (key: keyof MarketCoin) => {
     setSortConfig(prev => ({
       key,
       direction: prev.key === key && prev.direction === 'desc' ? 'asc' : 'desc'
