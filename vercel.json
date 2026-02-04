@@ -1,8 +1,2 @@
 {
-  "crons": [
-    {
-      "path": "/api/alerts/evaluate?type=spike",
-      "schedule": "*/1 * * * *"
-    }
-  ]
 }
