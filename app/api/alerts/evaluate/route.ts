@@ -1,12 +1,9 @@
 /**
  * Alert Evaluation Endpoint
- * Automatically triggered by Vercel Cron to evaluate all alert rules
+ * Triggered by external scheduler (e.g., cron-job.org) to evaluate all alert rules
  * 
- * Schedule:
- * - Spike alerts: Every 10 seconds (via client-side polling or separate cron)
- * - Monitor alerts: Every 60 seconds
- * 
- * Protected by ALERT_EVAL_SECRET header
+ * Protected by x-alert-secret header
+ * Uses Postgres advisory lock to prevent concurrent runs
  */
 
 import { NextResponse, NextRequest } from "next/server";
@@ -16,27 +13,62 @@ import {
   evaluateMonitorAlerts,
 } from "@/lib/alertEvaluator";
 
+// Force Node.js runtime (not Edge)
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 /**
- * Verify request is from Vercel Cron or authorized caller
+ * Verify request using x-alert-secret header
  */
 function isAuthorized(req: NextRequest): boolean {
-  const authHeader = req.headers.get("authorization");
   const secret = process.env.ALERT_EVAL_SECRET;
+  const headerSecret = req.headers.get("x-alert-secret");
 
-  // If no secret is set, allow (dev mode)
+  // Reject if no secret configured
   if (!secret) {
-    console.warn(
-      "[ALERT_EVAL] No ALERT_EVAL_SECRET set - running in dev mode"
-    );
-    return true;
+    console.error("[ALERT_EVAL] ALERT_EVAL_SECRET not configured");
+    return false;
   }
 
-  // Check Bearer token
-  if (authHeader === `Bearer ${secret}`) {
-    return true;
+  // Reject if header missing or wrong
+  if (!headerSecret || headerSecret !== secret) {
+    return false;
   }
 
-  return false;
+  return true;
+}
+
+/**
+ * Try to acquire Postgres advisory lock
+ * Returns true if lock acquired, false if already locked
+ */
+async function tryAcquireAdvisoryLock(): Promise<boolean> {
+  const prisma = getPrismaClient();
+  const LOCK_ID = 987654321; // Arbitrary unique number for this lock
+
+  try {
+    const result = await prisma.$queryRaw<{ pg_try_advisory_lock: boolean }[]>`
+      SELECT pg_try_advisory_lock(${LOCK_ID}) as pg_try_advisory_lock
+    `;
+    return result[0]?.pg_try_advisory_lock || false;
+  } catch (error) {
+    console.error("[ALERT_EVAL] Failed to acquire advisory lock:", error);
+    return false;
+  }
+}
+
+/**
+ * Release Postgres advisory lock
+ */
+async function releaseAdvisoryLock(): Promise<void> {
+  const prisma = getPrismaClient();
+  const LOCK_ID = 987654321;
+
+  try {
+    await prisma.$queryRaw`SELECT pg_advisory_unlock(${LOCK_ID})`;
+  } catch (error) {
+    console.error("[ALERT_EVAL] Failed to release advisory lock:", error);
+  }
 }
 
 /**
@@ -61,8 +93,8 @@ async function getUsersToEvaluate(): Promise<string[]> {
 
   // Merge and deduplicate
   const userIds = new Set<string>();
-  usersWithRules.forEach((u) => userIds.add(u.userId));
-  usersWithMonitor.forEach((u) => userIds.add(u.userId));
+  usersWithRules.forEach((u: { userId: string }) => userIds.add(u.userId));
+  usersWithMonitor.forEach((u: { userId: string }) => userIds.add(u.userId));
 
   return Array.from(userIds);
 }
@@ -139,8 +171,14 @@ async function evaluateAllMonitorAlerts(): Promise<{
  * POST /api/alerts/evaluate
  * Evaluate all alert rules (spike + monitor)
  * 
- * Query params:
- * - type: "spike" | "monitor" | "all" (default: "all")
+ * Security:
+ * - Requires x-alert-secret header matching ALERT_EVAL_SECRET env var
+ * - Uses Postgres advisory lock to prevent concurrent runs
+ * 
+ * Returns:
+ * - 401 if unauthorized
+ * - 200 with skipped:true if already locked
+ * - 200 with results if evaluation completed
  */
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
@@ -148,55 +186,75 @@ export async function POST(request: NextRequest) {
   try {
     // Auth check
     if (!isAuthorized(request)) {
-      console.error("[ALERT_EVAL] Unauthorized request");
+      console.error("[ALERT_EVAL] Unauthorized: missing or invalid x-alert-secret header");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { searchParams } = new URL(request.url);
-    const type = searchParams.get("type") || "all";
+    // Try to acquire advisory lock
+    const lockAcquired = await tryAcquireAdvisoryLock();
+    if (!lockAcquired) {
+      console.log("[ALERT_EVAL] Skipped - another evaluation is already running");
+      return NextResponse.json({
+        ok: true,
+        skipped: "locked",
+        message: "Another evaluation is already in progress",
+      });
+    }
 
-    console.log(`[ALERT_EVAL] ========== START (type: ${type}) ==========`);
+    console.log("[ALERT_EVAL] ========== START ==========");
 
     let spikeResults = null;
     let monitorResults = null;
 
-    // Evaluate spike alerts
-    if (type === "spike" || type === "all") {
+    try {
+      // Evaluate spike alerts
       console.log("[ALERT_EVAL] Evaluating spike alerts...");
       spikeResults = await evaluateAllSpikeAlerts();
       console.log(
-        `[ALERT_EVAL] Spike results: ${spikeResults.usersChecked} users, ${spikeResults.rulesChecked} rules, ${spikeResults.alertsFired} alerts fired`
+        `[ALERT_EVAL] Spike: ${spikeResults.rulesChecked} checked, ${spikeResults.alertsFired} fired`
       );
-    }
 
-    // Evaluate monitor alerts
-    if (type === "monitor" || type === "all") {
+      // Evaluate monitor alerts (currently skipped - requires client filter state)
       console.log("[ALERT_EVAL] Evaluating monitor alerts...");
       monitorResults = await evaluateAllMonitorAlerts();
       console.log(
-        `[ALERT_EVAL] Monitor results: ${monitorResults.usersChecked} users, ${monitorResults.settingsChecked} settings, ${monitorResults.alertsFired} alerts fired`
+        `[ALERT_EVAL] Monitor: ${monitorResults.settingsChecked} checked, ${monitorResults.alertsFired} fired`
       );
+    } finally {
+      // Always release the lock
+      await releaseAdvisoryLock();
     }
 
     const duration = Date.now() - startTime;
-    console.log(
-      `[ALERT_EVAL] ========== END (${duration}ms) ==========`
-    );
+    console.log(`[ALERT_EVAL] ========== END (${duration}ms) ==========`);
 
     return NextResponse.json({
-      success: true,
-      duration,
-      spike: spikeResults,
-      monitor: monitorResults,
+      ok: true,
+      spike: {
+        checked: spikeResults.rulesChecked,
+        fired: spikeResults.alertsFired,
+      },
+      monitor: {
+        checked: monitorResults.settingsChecked,
+        fired: monitorResults.alertsFired,
+      },
+      ms: duration,
     });
   } catch (error: any) {
     const duration = Date.now() - startTime;
     console.error(`[ALERT_EVAL] ERROR after ${duration}ms:`, error);
 
+    // Release lock on error
+    try {
+      await releaseAdvisoryLock();
+    } catch (unlockError) {
+      console.error("[ALERT_EVAL] Failed to release lock after error:", unlockError);
+    }
+
     return NextResponse.json(
       {
         error: error.message || "Failed to evaluate alerts",
-        duration,
+        ms: duration,
       },
       { status: 500 }
     );
