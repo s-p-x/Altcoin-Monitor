@@ -72,7 +72,7 @@ function normalizeCoin(
     volMcapPct:
       typeof coin.volMcapPct === "number"
         ? coin.volMcapPct
-        : typeof coin.marketCap === "number" && coin.marketCap > 0
+        : typeof coin.marketCap === "number" && coin.marketCap > 0 && typeof coin.volume24h === "number"
           ? (coin.volume24h / coin.marketCap) * 100
           : undefined,
     source,

@@ -49,7 +49,7 @@ const DenseView: React.FC<DenseViewProps> = ({
     const query = searchQuery.toLowerCase().trim();
     
     return coins.filter(coin => {
-      const symbol = (coin.symbol || coin.baseSymbol || '').toLowerCase();
+      const symbol = (coin.symbol || '').toLowerCase();
       const name = (coin.name || '').toLowerCase();
       
       // Match symbol prefix or substring, name substring
