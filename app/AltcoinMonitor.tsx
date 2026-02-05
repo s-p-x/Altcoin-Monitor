@@ -295,6 +295,11 @@ const AltcoinMonitor = () => {
             }
           }
           
+          // For now, assume 60/40 buy/sell split (placeholder until real kline data integrated)
+          // In production: fetch from exchange kline endpoint and use takerBuyQuoteAssetVolume
+          const buyVolumeQuote = Math.max(0, volume * 0.6);
+          const sellVolumeQuote = Math.max(0, volume * 0.4);
+
           return {
             id: coin.id,
             rank: coin.market_cap_rank,
@@ -306,6 +311,8 @@ const AltcoinMonitor = () => {
             total_volume: volume,
             volume_to_mcap_ratio: volumeToMcapRatio,
             price_change_24h: coin.price_change_percentage_24h || 0,
+            buyVolumeQuote,
+            sellVolumeQuote,
             volume_change_24h: 0,
             image: coin.image
           };
@@ -1018,6 +1025,22 @@ const AltcoinMonitor = () => {
                     </th>
                     <th 
                       className="px-6 py-3 text-right text-xs font-medium text-[var(--text-faint)] uppercase tracking-wider cursor-pointer hover:text-[var(--accent)]"
+                      onClick={() => handleSort('buyVolumeQuote')}
+                    >
+                      <div className="flex items-center justify-end gap-1">
+                        Buy Vol <SortIcon columnKey="buyVolumeQuote" />
+                      </div>
+                    </th>
+                    <th 
+                      className="px-6 py-3 text-right text-xs font-medium text-[var(--text-faint)] uppercase tracking-wider cursor-pointer hover:text-[var(--accent)]"
+                      onClick={() => handleSort('sellVolumeQuote')}
+                    >
+                      <div className="flex items-center justify-end gap-1">
+                        Sell Vol <SortIcon columnKey="sellVolumeQuote" />
+                      </div>
+                    </th>
+                    <th 
+                      className="px-6 py-3 text-right text-xs font-medium text-[var(--text-faint)] uppercase tracking-wider cursor-pointer hover:text-[var(--accent)]"
                       onClick={() => handleSort('volume_to_mcap_ratio')}
                     >
                       <div className="flex items-center justify-end gap-1">
@@ -1060,6 +1083,12 @@ const AltcoinMonitor = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-[var(--text)]">
                         {formatNumber(coin.total_volume)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-[var(--semantic-green)]">
+                        {formatNumber(coin.buyVolumeQuote)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-[var(--semantic-red)]">
+                        {formatNumber(coin.sellVolumeQuote)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
                         <span className={`px-2 py-1 rounded-full font-semibold border ${

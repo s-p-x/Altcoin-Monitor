@@ -118,6 +118,8 @@ export interface MarketCoin {
   total_volume: number;
   volume_to_mcap_ratio: number;
   price_change_24h: number;
+  buyVolumeQuote: number;
+  sellVolumeQuote: number;
   image?: string;
 }
 

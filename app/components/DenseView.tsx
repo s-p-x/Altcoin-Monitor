@@ -149,6 +149,22 @@ const DenseView: React.FC<DenseViewProps> = ({
               </th>
               <th
                 className="px-4 py-2 text-right text-xs font-medium text-[var(--text-faint)] uppercase tracking-wider cursor-pointer hover:text-[var(--accent)]"
+                onClick={() => onSort('buyVolumeQuote')}
+              >
+                <div className="flex items-center justify-end gap-1">
+                  Buy <SortIcon columnKey="buyVolumeQuote" sortKey={sortConfig.key} direction={sortConfig.direction} />
+                </div>
+              </th>
+              <th
+                className="px-4 py-2 text-right text-xs font-medium text-[var(--text-faint)] uppercase tracking-wider cursor-pointer hover:text-[var(--accent)]"
+                onClick={() => onSort('sellVolumeQuote')}
+              >
+                <div className="flex items-center justify-end gap-1">
+                  Sell <SortIcon columnKey="sellVolumeQuote" sortKey={sortConfig.key} direction={sortConfig.direction} />
+                </div>
+              </th>
+              <th
+                className="px-4 py-2 text-right text-xs font-medium text-[var(--text-faint)] uppercase tracking-wider cursor-pointer hover:text-[var(--accent)]"
                 onClick={() => onSort('volume_to_mcap_ratio')}
               >
                 <div className="flex items-center justify-end gap-1">
@@ -202,6 +218,12 @@ const DenseView: React.FC<DenseViewProps> = ({
                 </td>
                 <td className="px-4 py-2 whitespace-nowrap text-xs text-right text-[var(--text)] font-medium tabular-nums">
                   {formatNumber(coin.total_volume)}
+                </td>
+                <td className="px-4 py-2 whitespace-nowrap text-xs text-right text-[var(--semantic-green)] tabular-nums">
+                  {formatNumber(coin.buyVolumeQuote)}
+                </td>
+                <td className="px-4 py-2 whitespace-nowrap text-xs text-right text-[var(--semantic-red)] tabular-nums">
+                  {formatNumber(coin.sellVolumeQuote)}
                 </td>
                 <td className="px-4 py-2 whitespace-nowrap text-xs text-right">
                   <span
