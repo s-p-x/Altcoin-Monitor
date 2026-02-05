@@ -7,8 +7,8 @@ import { MarketCoin } from '@/lib/types';
 interface DenseViewProps {
   coins: MarketCoin[];
   formatNumber: (num: number) => string;
-  onSort: (key: string) => void;
-  sortConfig: { key: string; direction: 'asc' | 'desc' };
+  onSort: (key: keyof MarketCoin) => void;
+  sortConfig: { key: keyof MarketCoin; direction: 'asc' | 'desc' };
   universeStats?: { total: number; coingecko: number; exchange: number; userAdded: number };
 }
 
@@ -17,8 +17,8 @@ const SortIcon = ({
   sortKey,
   direction,
 }: {
-  columnKey: string;
-  sortKey: string;
+  columnKey: keyof MarketCoin;
+  sortKey: keyof MarketCoin;
   direction: 'asc' | 'desc';
 }) => {
   if (sortKey !== columnKey) {
