@@ -1140,7 +1140,7 @@ const AltcoinMonitor = () => {
         {viewMode === 'dense' && (
           <div>
             {sortedCoins.length > 0 ? (
-              <DenseView coins={displayCoins} formatNumber={formatNumber} onSort={handleSort} sortConfig={sortConfig} universeStats={universeStats} />
+              <DenseView coins={displayCoins} formatNumber={formatNumber} onSort={handleSort} sortConfig={sortConfig} universeStats={universeStats ?? undefined} />
             ) : (
               <div className="bg-[var(--panel)] rounded-md border border-[var(--border)] p-12 text-center text-[var(--text-muted)]">
                 {coins.length === 0 && !loading ? (
