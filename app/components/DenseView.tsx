@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { TrendingUp, TrendingDown, ChevronUp, X } from 'lucide-react';
 import { MarketCoin } from '@/lib/types';
+import CoinClickPanel, { type CoinSummary } from './CoinClickPanel';
 
 interface DenseViewProps {
   coins: MarketCoin[];
@@ -39,6 +40,8 @@ const DenseView: React.FC<DenseViewProps> = ({
   universeStats
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [selectedCoin, setSelectedCoin] = useState<CoinSummary | null>(null);
 
   // Debounced search filtering
   const filteredCoins = useMemo(() => {
@@ -74,6 +77,20 @@ const DenseView: React.FC<DenseViewProps> = ({
       handleClearSearch();
     }
   }, [handleClearSearch]);
+
+  const handleCoinRowClick = useCallback((coin: MarketCoin) => {
+    setSelectedCoin({
+      id: coin.id,
+      symbol: coin.symbol,
+      name: coin.name,
+      price: coin.price ?? null,
+      marketCap: coin.market_cap ?? null,
+      totalVolume: coin.total_volume ?? null,
+      priceChange24hPct: coin.price_change_24h ?? null,
+      image: coin.image ?? null,
+    });
+    setPanelOpen(true);
+  }, []);
 
   return (
     <div className="bg-[var(--panel)] rounded-lg border border-[var(--border)] overflow-hidden">
@@ -183,7 +200,11 @@ const DenseView: React.FC<DenseViewProps> = ({
           </thead>
           <tbody className="divide-y divide-[var(--border)]">
             {filteredCoins.map((coin) => (
-              <tr key={coin.id} className="hover:bg-[var(--bg)] hover:border-l-2 hover:border-[var(--accent)] transition-all relative">
+              <tr
+                key={coin.id}
+                className="hover:bg-[var(--bg)] hover:border-l-2 hover:border-[var(--accent)] transition-all relative cursor-pointer"
+                onClick={() => handleCoinRowClick(coin)}
+              >
                 <td className="px-4 py-2 whitespace-nowrap text-xs text-[var(--text-faint)] tabular-nums">
                   #{coin.rank}
                 </td>
@@ -261,6 +282,12 @@ const DenseView: React.FC<DenseViewProps> = ({
           </tbody>
         </table>
       </div>
+
+      <CoinClickPanel
+        open={panelOpen}
+        coin={selectedCoin}
+        onClose={() => setPanelOpen(false)}
+      />
     </div>
   );
 };
